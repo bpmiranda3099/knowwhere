@@ -50,24 +50,29 @@ docker compose run --rm api npm run backfill:embeddings
 Push (from build machine):
 ```
 docker login
-docker tag knowwhere-api yourdockerhubuser/knowwhere-api:latest
-docker tag knowwhere-web yourdockerhubuser/knowwhere-web:latest
-docker tag knowwhere-embedding yourdockerhubuser/knowwhere-embedding:latest
-docker tag knowwhere-reranker yourdockerhubuser/knowwhere-reranker:latest
-docker push yourdockerhubuser/knowwhere-api:latest
-docker push yourdockerhubuser/knowwhere-web:latest
-docker push yourdockerhubuser/knowwhere-embedding:latest
-docker push yourdockerhubuser/knowwhere-reranker:latest
+docker tag knowwhere-api your_dockerhub_user/knowwhere-api:latest
+docker tag knowwhere-web your_dockerhub_user/knowwhere-web:latest
+docker tag knowwhere-embedding your_dockerhub_user/knowwhere-embedding:latest
+docker tag knowwhere-reranker your_dockerhub_user/knowwhere-reranker:latest
+docker push your_dockerhub_user/knowwhere-api:latest
+docker push your_dockerhub_user/knowwhere-web:latest
+docker push your_dockerhub_user/knowwhere-embedding:latest
+docker push your_dockerhub_user/knowwhere-reranker:latest
+# Rebuild local images after code changes (optional):
+# docker compose build api web embedding reranker
+# docker compose up -d
 ```
 
 Pull (on target machine, e.g., Mac) and run:
 ```
-docker pull yourdockerhubuser/knowwhere-api:latest
-docker pull yourdockerhubuser/knowwhere-web:latest
-docker pull yourdockerhubuser/knowwhere-embedding:latest
-docker pull yourdockerhubuser/knowwhere-reranker:latest
-docker pull pgvector/pgvector:pg16
-docker compose up -d
+docker pull your_dockerhub_user/knowwhere-api:latest
+docker pull your_dockerhub_user/knowwhere-web:latest
+docker pull your_dockerhub_user/knowwhere-embedding:latest
+docker pull your_dockerhub_user/knowwhere-reranker:latest
+docker pull your_dockerhub_user/knowwhere-db:pg16
+docker compose up -d    # use pulled images
+# To recreate with latest pulled images:
+# docker compose up -d --force-recreate
 ```
 If you change tags, update `docker-compose.yml` accordingly.
 
@@ -101,3 +106,18 @@ docker compose up -d
 ## Notes
 - If you change `.env`, rebuild the API container or restart compose.
 - For persistent DB data, preserve the `db_data` volume or re-ingest after moving.
+
+## KnowWhere DB setup (clean pgvector with schema baked in)
+- Use the prepped image with schema/roles: `your_dockerhub_user/knowwhere-db:pg16` (or the upstream `pgvector/pgvector:pg16` if you prefer to apply schema yourself).
+- In `docker-compose.yml`, set the `db` service image accordingly.
+- Start clean: `docker compose down -v` then `docker compose up -d`.
+- Health check: `docker exec knowwhere-db psql -U knowwhere_superadmin -d knowwhere -c "SELECT NOW();"`
+
+Reset ingestion data (keep DB instance):
+```
+docker exec knowwhere-db psql -U knowwhere_superadmin -d knowwhere -c "
+TRUNCATE TABLE paper_chunks, paper_authors, paper_subjects, papers, authors, subjects, venues, sources,
+ingest_runs, pdf_assets, fulltexts, embeddings, search_logs, languages, api_keys, citations
+RESTART IDENTITY CASCADE;
+"
+```
