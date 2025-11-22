@@ -1,4 +1,4 @@
-# KnowWhere Search API (TypeScript)
+# KnowWhere Search API
 
 Hybrid lexical + semantic search API for academic discovery, backed by PostgreSQL with `pgvector` and `tsvector`. Returns ranked papers/chunks for RAG without generating prose answers.
 
@@ -64,8 +64,3 @@ Hybrid lexical + semantic search API for academic discovery, backed by PostgreSQ
     WHERE paper_id = $1;
   ```
 - Deduplicate on `id` (use DOI/arXiv id where possible). Chunk text into ~200–400 word segments for better snippets.
-
-## Next steps
-- Add formal migrations tooling (e.g., drizzle/typeorm) when you’re ready to manage schema changes.
-- Expand ingestion with richer field mapping; extend PDF/full-text chunking to additional sources.
-- Add deeper tests (query building/DB integration) and extend CI for linting.
