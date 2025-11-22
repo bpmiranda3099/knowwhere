@@ -1,0 +1,30 @@
+FROM python:3.12-slim-bookworm
+
+ARG TORCH_DEVICE=cpu
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8082 \
+    MODEL_NAME=BAAI/bge-reranker-base \
+    CUDA_VISIBLE_DEVICES=""
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY reranker/requirements.txt requirements.txt
+# Install torch based on target (cpu default). Override TORCH_DEVICE=gpu to pull the default wheel (requires NVIDIA runtime/driver).
+RUN if [ "$TORCH_DEVICE" = "gpu" ]; then \
+      pip install --no-cache-dir torch==2.2.2; \
+    else \
+      pip install --no-cache-dir torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu; \
+    fi && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY reranker /app
+
+EXPOSE 8082
+
+CMD ["python", "server.py"]

@@ -1,0 +1,90 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: knowwhere-db
+    environment:
+      POSTGRES_USER: ${DB_SUPERUSER:-knowwhere_superadmin}
+      POSTGRES_PASSWORD: ${DB_SUPERPASS:-knowwhere_superadmin_pass}
+      POSTGRES_DB: knowwhere
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_SUPERUSER:-knowwhere_superadmin} -d knowwhere"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  embedding:
+    build:
+      context: .
+      dockerfile: Dockerfile.embedding
+    container_name: knowwhere-embedding
+    environment:
+      MODEL_NAME: BAAI/bge-base-en-v1.5
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  reranker:
+    build:
+      context: .
+      dockerfile: Dockerfile.reranker
+    container_name: knowwhere-reranker
+    environment:
+      MODEL_NAME: BAAI/bge-reranker-base
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: knowwhere-api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://${DB_ADMIN_USER:-knowwhere_admin}:${DB_ADMIN_PASS:-knowwhere_admin_pass}@db:5432/knowwhere
+      EMBEDDING_ENDPOINT: http://embedding:8081/embed
+      EMBEDDING_MODEL: BAAI/bge-base-en-v1.5
+      RERANK_ENDPOINT: http://reranker:8082/rerank
+      RATE_LIMIT_MAX: 100
+      RATE_LIMIT_WINDOW: 60000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - embedding
+      - reranker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: knowwhere-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  db_data:

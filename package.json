@@ -1,0 +1,40 @@
+{
+  "name": "knowwhere-search-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "tsx --watch src/api/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/api/index.js",
+    "lint": "echo \"add eslint if needed\"",
+    "backfill:tsv": "tsx scripts/backfill/backfillTsv.ts",
+    "backfill:embeddings": "tsx scripts/backfill/backfillEmbeddings.ts",
+    "ingest:arxiv": "tsx scripts/ingest/ingestArxiv.ts",
+    "ingest:crossref": "tsx scripts/ingest/ingestCrossref.ts",
+    "ingest:openalex": "tsx scripts/ingest/ingestOpenAlex.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.0.0",
+    "@fastify/rate-limit": "^8.0.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.0",
+    "pg": "^8.12.0",
+    "pdf-parse": "^1.1.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/pg": "^8.10.9",
+    "tsx": "^4.19.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.6.0"
+  }
+}
