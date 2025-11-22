@@ -14,6 +14,7 @@
   const summaryEl = document.getElementById('results-summary');
   const searchBtn = document.getElementById('search-btn');
   const paginationEl = document.getElementById('pagination');
+  const paginationTopEl = document.getElementById('pagination-top');
 
   let results = [];
   const pageSize = 8;
@@ -28,50 +29,72 @@
     statusEl.className = `status ${type}`;
   }
 
-  function onViewArticle(item) {
-    const cache = { results, selectedId: item.id };
-    sessionStorage.setItem('kw_search_cache', JSON.stringify(cache));
-    window.location.href = `article.html?id=${encodeURIComponent(item.id)}`;
-  }
-
   function renderResults() {
     if (!results.length) {
       resultsEl.innerHTML = '<p class="text-muted mb-0">No results yet. Run a search.</p>';
       summaryEl.textContent = '';
       paginationEl.innerHTML = '';
+      paginationTopEl.innerHTML = '';
       return;
     }
+
+    const renderPage = (data) => {
+      resultsEl.innerHTML = '';
+      data.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'card result-card';
+        const authors = Array.isArray(item.authors) ? item.authors.join(', ') : 'Not provided';
+        const rawAbstract = item.abstract || item.snippet || 'No abstract available.';
+        const abstractWords = rawAbstract.split(/\s+/).filter(Boolean);
+        const abstract =
+          abstractWords.length > 100
+            ? `${abstractWords.slice(0, 100).join(' ')} ...`
+            : rawAbstract;
+        const submitted = item.year || item.published || 'Not provided';
+        const link = item.url || (item.doi ? `https://doi.org/${item.doi}` : null);
+        card.innerHTML = `
+          <div class="card__content">
+            <div class="result-title">${item.title || '(untitled)'}</div>
+            <div class="result-meta">
+              ${item.source || 'unknown'}${item.subjects?.length ? ' · ' + item.subjects.join(', ') : ''}
+            </div>
+            <p class="result-line"><strong>Author:</strong> ${authors}</p>
+            <p class="result-line abstract"><strong>Abstract:</strong> ${abstract}</p>
+            <p class="result-line"><strong>Submitted:</strong> ${submitted}</p>
+            <p class="result-line"><strong>Link:</strong> ${link ? `<a href="${link}" target="_blank" rel="noopener">${link}</a>` : 'Not provided'}</p>
+          </div>
+        `;
+        resultsEl.appendChild(card);
+      });
+      summaryEl.textContent = `Showing ${data.length} of ${results.length} results`;
+    };
+
+    const syncPaginations = (from) => {
+      const target = from === 'top' ? '#pagination' : '#pagination-top';
+      const inst = $(target).data('pagination');
+      const sourceInst = from === 'top' ? $('#pagination-top').data('pagination') : $('#pagination').data('pagination');
+      if (inst && sourceInst && inst.model.pageNumber !== sourceInst.model.pageNumber) {
+        $(target).pagination('go', sourceInst.model.pageNumber);
+      }
+    };
+
+    $('#pagination-top').pagination({
+      dataSource: results,
+      pageSize,
+      className: 'paginationjs-theme-blue',
+      callback: (data) => {
+        renderPage(data);
+        syncPaginations('top');
+      }
+    });
 
     $('#pagination').pagination({
       dataSource: results,
       pageSize,
       className: 'paginationjs-theme-blue',
-      callback: function (data, pagination) {
-        resultsEl.innerHTML = '';
-        data.forEach((item) => {
-          const card = document.createElement('div');
-          card.className = 'card result-card';
-          card.innerHTML = `
-            <div class="card__content">
-              <div class="result-header">
-                <div>
-                  <div class="result-title">${item.title || '(untitled)'}</div>
-                  <div class="result-meta">
-                    ${item.source || 'unknown'}${item.subjects?.length ? ' · ' + item.subjects.join(', ') : ''}
-                  </div>
-                </div>
-                <button class="btn btn-secondary view-btn">View</button>
-              </div>
-              <p class="result-snippet">${item.snippet || item.abstract || 'No snippet available.'}</p>
-              <div class="score-row">
-                ${item.hybridScore != null ? `hybrid: ${item.hybridScore.toFixed(3)}` : ''}
-              </div>
-            </div>
-          `;
-          card.querySelector('.view-btn').addEventListener('click', () => onViewArticle(item));
-          resultsEl.appendChild(card);
-        });
-        summaryEl.textContent = `Showing ${data.length} of ${results.length} results`;
+      callback: (data) => {
+        renderPage(data);
+        syncPaginations('bottom');
       }
     });
   }
@@ -117,7 +140,7 @@
       }
       const data = await res.json();
       results = Array.isArray(data.results) ? data.results : [];
-      setStatus(`Search complete: ${results.length} result(s).`, 'success');
+      setStatus('', 'muted');
       localStorage.setItem('kw_api_key', apiKey);
       localStorage.setItem('kw_api_base', apiBase);
       renderResults();

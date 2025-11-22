@@ -119,6 +119,9 @@ pre{
     padding: 12px 13.25%;
     margin-bottom: 20px;
 }
+.left-menu a{
+    text-decoration: none;
+}
 .left-menu .info {
     position: relative;
     font-size: 14px;
@@ -693,3 +696,84 @@ body.one-content-column-version .content thead {
     background:#e04444;
     border-color:#e04444;
 }
+
+.results-grid{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-width:860px;
+    margin:0 auto;
+}
+.result-card .result-title{
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:6px;
+    color:#00a8e3;
+}
+.result-card .result-meta{
+    color:#ff4d4d;
+}
+.result-line{
+    margin:6px 0;
+}
+.results-grid .card{
+    border-bottom:1px solid #2f2f34;
+    padding-bottom:12px;
+}
+.results-grid .card:last-child{
+    border-bottom:none;
+}
+
+# Clamp abstract lines
+.result-line.abstract{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+
+.results-header{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:24px;
+    flex-wrap:wrap;
+    max-width:860px;
+    margin:0 auto;
+    padding:0 8px;
+}
+#pagination-top,.pagination-bottom{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin:8px auto;
+    max-width:860px;
+    padding:0 8px;
+}
+.pagination-bottom{
+    margin-top:14px;
+    margin-bottom:14px;
+}
+
+
+.row-filters{flex-wrap:nowrap;gap:14px;align-items:center;}
+.row-filters .form-group{flex:1;min-width:0;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.row-filters .form-group input{width:140px;max-width:100%;}
+@media (max-width:900px){.row-filters{flex-wrap:wrap;}}
+#results-summary{display:none !important;}
+
+/* Pagination styling */
+#pagination-top, .pagination-bottom{
+    padding-top:6px;
+    padding-bottom:6px;
+}
+.paginationjs .paginationjs-page a,
+.paginationjs .paginationjs-prev a,
+.paginationjs .paginationjs-next a,
+.paginationjs .paginationjs-ellipsis{
+    background:#1f1f21;
+    color:#fff;
+    border:1px solid #3a3a40;
+    font-family:'Roboto', sans-serif;
+}
+.paginationjs .paginationjs-page.active a{
+    background:#ff4d4d;
+    border-color:#ff4d4d;
+    color:#000;
+}
+
