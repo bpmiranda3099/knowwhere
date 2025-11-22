@@ -58,9 +58,6 @@ docker push your_dockerhub_user/knowwhere-api:latest
 docker push your_dockerhub_user/knowwhere-web:latest
 docker push your_dockerhub_user/knowwhere-embedding:latest
 docker push your_dockerhub_user/knowwhere-reranker:latest
-# Rebuild local images after code changes (optional):
-# docker compose build api web embedding reranker
-# docker compose up -d
 ```
 
 Pull (on target machine, e.g., Mac) and run:
@@ -70,9 +67,7 @@ docker pull your_dockerhub_user/knowwhere-web:latest
 docker pull your_dockerhub_user/knowwhere-embedding:latest
 docker pull your_dockerhub_user/knowwhere-reranker:latest
 docker pull your_dockerhub_user/knowwhere-db:pg16
-docker compose up -d    # use pulled images
-# To recreate with latest pulled images:
-# docker compose up -d --force-recreate
+docker compose up -d
 ```
 If you change tags, update `docker-compose.yml` accordingly.
 
@@ -84,7 +79,7 @@ docker save -o knowwhere-images.tar \
   knowwhere-web \
   knowwhere-embedding \
   knowwhere-reranker \
-  pgvector/pgvector:pg16
+  knowwhere-db
 ```
 Copy `knowwhere-images.tar` to the target machine, then load:
 ```
@@ -103,13 +98,10 @@ docker compose up -d
 - Reranker: `curl http://localhost:8082/health`
 - DB: `docker exec -it knowwhere-db psql -U knowwhere_superadmin -d knowwhere`
 
-## Notes
-- If you change `.env`, rebuild the API container or restart compose.
-- For persistent DB data, preserve the `db_data` volume or re-ingest after moving.
 
-## KnowWhere DB setup (clean pgvector with schema baked in)
-- Use the prepped image with schema/roles: `your_dockerhub_user/knowwhere-db:pg16` (or the upstream `pgvector/pgvector:pg16` if you prefer to apply schema yourself).
-- In `docker-compose.yml`, set the `db` service image accordingly.
+## Vector Database setup (clean pgvector with schema baked in)
+- Use the prepped image with schema/roles: `bpmiranda/knowwhere-db:pg16`.
+- In `docker-compose.yml`, set the `db` service image to `bpmiranda/knowwhere-db:pg16`.
 - Start clean: `docker compose down -v` then `docker compose up -d`.
 - Health check: `docker exec knowwhere-db psql -U knowwhere_superadmin -d knowwhere -c "SELECT NOW();"`
 
@@ -121,3 +113,7 @@ ingest_runs, pdf_assets, fulltexts, embeddings, search_logs, languages, api_keys
 RESTART IDENTITY CASCADE;
 "
 ```
+
+## Notes
+- If you change `.env`, rebuild the API container or restart compose.
+- For persistent DB data, preserve the `db_data` volume or re-ingest after moving.
