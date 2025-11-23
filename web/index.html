@@ -42,8 +42,11 @@
     <ul>
       <li class="scroll-to-link active" data-target="content-get-started"><a>Get Started</a></li>
       <li class="scroll-to-link" data-target="content-auth"><a>Auth & Rate Limits</a></li>
+      <li class="scroll-to-link" data-target="content-ingest"><a>POST /ingest</a></li>
       <li class="scroll-to-link" data-target="content-search"><a>POST /search</a></li>
       <li class="scroll-to-link" data-target="content-health"><a>GET /health</a></li>
+      <li class="scroll-to-link" data-target="content-stats"><a>GET /stats</a></li>
+      <li class="scroll-to-link" data-target="content-logs"><a>GET /logs</a></li>
       <li class="scroll-to-link" data-target="content-embedding"><a>Embedding & Rerank</a></li>
       <li class="scroll-to-link" data-target="content-errors"><a>Error Codes</a></li>
       <li><a href="test.html">Playground</a></li>
@@ -67,6 +70,64 @@
         <li>Docs site (this page): <code>http://localhost:8080/web</code>. API: <code>http://localhost:3000</code>.</li>
       </ol>
       <p>For production, deploy the four containers (<code>api</code>, <code>embedding</code>, <code>reranker</code>, <code>db</code>) against your own Postgres/pgvector. Set <code>DATABASE_URL</code>, <code>EMBEDDING_ENDPOINT</code>, and <code>RERANK_ENDPOINT</code>.</p>
+    </div>
+
+    <div class="overflow-hidden content-section" id="content-ingest">
+      <h2>POST /ingest</h2>
+      <p>Kick off ingestion without leaving the API. This endpoint dispatches a background job to fetch and store sources, then backfill embeddings as part of the ingest script.</p>
+      <div class="code-tabs" data-tabs="ingest-request">
+        <div class="tab-buttons">
+          <button class="tab-button active" data-tab="curl">cURL</button>
+          <button class="tab-button" data-tab="node">Node.js</button>
+          <button class="tab-button" data-tab="python">Python</button>
+        </div>
+        <div class="tab-panel active" data-tab-panel="curl">
+<pre><code class="bash">curl -X POST http://localhost:3000/ingest \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: &lt;API_KEY&gt;" \
+  -d '{
+    "source": "arxiv",
+    "query": "cat:cs.CL",
+    "count": 25
+}'</code></pre>
+        </div>
+        <div class="tab-panel" data-tab-panel="node">
+<pre><code class="javascript">await fetch("http://localhost:3000/ingest", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": "&lt;API_KEY&gt;"
+  },
+  body: JSON.stringify({
+    source: "crossref",
+    query: "graph neural networks",
+    count: 20
+  })
+});</code></pre>
+        </div>
+        <div class="tab-panel" data-tab-panel="python">
+<pre><code class="python">import requests
+
+requests.post(
+    "http://localhost:3000/ingest",
+    headers={"Content-Type": "application/json", "x-api-key": "&lt;API_KEY&gt;"},
+    json={"source": "openalex", "query": "foundation models", "count": 15},
+    timeout=30,
+)</code></pre>
+        </div>
+      </div>
+      <h4>Body parameters</h4>
+      <table class="central-overflow-x">
+        <thead>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+        <tr><td>source</td><td>"arxiv" | "crossref" | "openalex"</td><td>Which ingest pipeline to run.</td></tr>
+        <tr><td>query</td><td>string</td><td>Search query (e.g., arXiv category or keyword).</td></tr>
+        <tr><td>count</td><td>int (max 500)</td><td>Max records to pull (defaults to 50).</td></tr>
+        </tbody>
+      </table>
+      <p>Response: <code>202 Accepted</code> with a job PID. Job logs stream to the API container.</p>
     </div>
 
     <div class="overflow-hidden content-section" id="content-auth">
@@ -196,7 +257,7 @@ print(response.json())</code></pre>
 
     <div class="overflow-hidden content-section" id="content-health">
       <h2>GET /health</h2>
-      <p>Lightweight readiness probe used by Docker health checks. No authentication required.</p>
+      <p>Lightweight readiness probe used by Docker health checks. No authentication required. You can optionally request specific services via <code>?services=db,embedding,reranker,web</code>.</p>
       <div class="code-tabs" data-tabs="health-request">
         <div class="tab-buttons">
           <button class="tab-button active" data-tab="curl">cURL</button>
@@ -207,20 +268,59 @@ print(response.json())</code></pre>
 <pre><code class="bash">curl http://localhost:3000/health</code></pre>
         </div>
         <div class="tab-panel" data-tab-panel="node">
-<pre><code class="javascript">const response = await fetch("http://localhost:3000/health");
+<pre><code class="javascript">const response = await fetch("http://localhost:3000/health?services=db,embedding,reranker");
 console.log(await response.json());</code></pre>
         </div>
         <div class="tab-panel" data-tab-panel="python">
 <pre><code class="python">import requests
 
-response = requests.get("http://localhost:3000/health", timeout=5)
+response = requests.get("http://localhost:3000/health?services=db,embedding,reranker", timeout=5)
 print(response.json())</code></pre>
         </div>
       </div>
 <pre class="response-block"><code class="json">{
-  "status": "ok"
+  "status": "ok",
+  "services": {
+    "api": "ok",
+    "db": "ok",
+    "embedding": "ok",
+    "reranker": "ok",
+    "web": "unknown"
+  }
 }</code></pre>
-      <p>A <code>/ready</code> endpoint is also available for readiness checks.</p>
+      <p>A <code>/ready</code> endpoint is also available for readiness checks (API-only).</p>
+    </div>
+
+    <div class="overflow-hidden content-section" id="content-stats">
+      <h2>GET /stats</h2>
+      <p>Returns aggregate counts so you can confirm ingestion coverage.</p>
+<pre class="response-block"><code class="json">{
+  "papers": 12850,
+  "chunks": 74532,
+  "subjects": 412,
+  "sources": {
+    "arxiv": 8200,
+    "crossref": 3000,
+    "openalex": 1650
+  }
+}</code></pre>
+    </div>
+
+    <div class="overflow-hidden content-section" id="content-logs">
+      <h2>GET /logs</h2>
+      <p>Fetch recent search logs (sanitized) for debugging or analytics.</p>
+<pre><code class="bash">curl "http://localhost:3000/logs?limit=50" \
+  -H "x-api-key: &lt;API_KEY&gt;"</code></pre>
+<pre class="response-block"><code class="json">[
+  {
+    "id": 123,
+    "query": "self supervised speech",
+    "mode": "hybrid",
+    "level": "paper",
+    "created_at": "2025-11-22T03:11:00.000Z"
+  }
+]</code></pre>
+      <p>Query params: <code>limit</code> (default 50, max 200).</p>
     </div>
 
     <div class="overflow-hidden content-section" id="content-embedding">

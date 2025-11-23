@@ -100,8 +100,8 @@ docker compose up -d
 
 
 ## Vector Database setup (clean pgvector with schema baked in)
-- Use the prepped image with schema/roles: `bpmiranda/knowwhere-db:pg16`.
-- In `docker-compose.yml`, set the `db` service image to `bpmiranda/knowwhere-db:pg16`.
+- Use the prepped image with schema/roles: `your_dockerhub_user/knowwhere-db:pg16` (or upstream `pgvector/pgvector:pg16` if you prefer to apply schema yourself).
+- In `docker-compose.yml`, set the `db` service image accordingly.
 - Start clean: `docker compose down -v` then `docker compose up -d`.
 - Health check: `docker exec knowwhere-db psql -U knowwhere_superadmin -d knowwhere -c "SELECT NOW();"`
 

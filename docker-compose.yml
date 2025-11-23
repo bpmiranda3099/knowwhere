@@ -1,6 +1,6 @@
 services:
   db:
-    image: pgvector/pgvector:pg16
+    image: ${DB_IMAGE:-pgvector/pgvector:pg16}
     container_name: knowwhere-db
     environment:
       POSTGRES_USER: ${DB_SUPERUSER:-knowwhere_superadmin}

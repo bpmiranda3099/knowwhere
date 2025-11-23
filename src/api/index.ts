@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import { config } from '../config/env';
 import { registerSearchRoutes } from './routes/search';
 import { registerHealthRoutes } from './routes/health';
+import { registerIngestRoutes } from './routes/ingest';
 import { apiKeyGuard } from './hooks/auth';
 import { RATE_LIMIT_ALLOWLIST } from '../config/system/constants';
 
@@ -31,6 +32,7 @@ export async function buildServer() {
 
   app.addHook('onRequest', apiKeyGuard);
   await registerHealthRoutes(app);
+  await registerIngestRoutes(app);
   await registerSearchRoutes(app);
 
   return app;
