@@ -25,7 +25,12 @@ async function checkHttp(url?: string) {
 
 export async function registerHealthRoutes(app: FastifyInstance): Promise<void> {
   app.get('/health', async (req) => {
-    const params = new URLSearchParams((req.query as Record<string, string | undefined>) ?? {});
+    const rawQuery = (req.query as Record<string, string | undefined>) ?? {};
+    const params = new URLSearchParams(
+      Object.entries(rawQuery)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, v as string])
+    );
     const servicesParam = params.get('services');
     const requested: Service[] = servicesParam
       ? servicesParam.split(',').map((s) => s.trim() as Service)

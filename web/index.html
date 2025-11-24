@@ -45,6 +45,7 @@
       <li class="scroll-to-link" data-target="content-ingest"><a>POST /ingest</a></li>
       <li class="scroll-to-link" data-target="content-search"><a>POST /search</a></li>
       <li class="scroll-to-link" data-target="content-health"><a>GET /health</a></li>
+      <li class="scroll-to-link" data-target="content-evaluate"><a>POST /evaluate</a></li>
       <li class="scroll-to-link" data-target="content-stats"><a>GET /stats</a></li>
       <li class="scroll-to-link" data-target="content-logs"><a>GET /logs</a></li>
       <li class="scroll-to-link" data-target="content-embedding"><a>Embedding & Rerank</a></li>
@@ -289,6 +290,47 @@ print(response.json())</code></pre>
   }
 }</code></pre>
       <p>A <code>/ready</code> endpoint is also available for readiness checks (API-only).</p>
+    </div>
+
+    <div class="overflow-hidden content-section" id="content-evaluate">
+      <h2>POST /evaluate</h2>
+      <p>Run controlled retrieval experiments against a labeled query set. The API executes searches per mode, computes IR metrics, persists results, and returns a summary.</p>
+<pre><code class="bash">curl -X POST http://localhost:3000/evaluate \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: &lt;API_KEY&gt;" \
+  -d '{
+    "label": "baseline-vs-hybrid",
+    "k": 10,
+    "modes": ["lexical","semantic","hybrid"],
+    "queries": [
+      {
+        "id": "q1",
+        "q": "self supervised speech recognition",
+        "relevantIds": ["arxiv:2401.12345","arxiv:2310.11111"],
+        "filters": {"subject": "cs.CL"}
+      }
+    ]
+  }'</code></pre>
+<pre class="response-block"><code class="json">{
+  "runId": 12,
+  "metrics": {
+    "hybrid": { "precision": 0.6, "recall": 0.6, "mrr": 1.0, "latencyMs": 120, "queries": 1 },
+    "lexical": { "precision": 0.3, "recall": 0.3, "mrr": 0.5, "latencyMs": 40, "queries": 1 },
+    "semantic": { "precision": 0.4, "recall": 0.4, "mrr": 0.33, "latencyMs": 90, "queries": 1 }
+  },
+  "sample": [
+    {
+      "runId": 12,
+      "mode": "hybrid",
+      "query": "self supervised speech recognition",
+      "relevantIds": ["arxiv:2401.12345","arxiv:2310.11111"],
+      "retrievedIds": ["arxiv:2401.12345","arxiv:2309.22222"],
+      "metrics": { "precision": 0.6, "recall": 0.6, "mrr": 1.0 },
+      "latencyMs": 120
+    }
+  ]
+}</code></pre>
+      <p>Body fields: <code>label</code> (optional), <code>k</code> (default 10), <code>modes</code> (default all), <code>level</code> ("paper" | "chunk"), and <code>queries</code> array with <code>q</code>, <code>relevantIds</code>, optional <code>filters</code>.</p>
     </div>
 
     <div class="overflow-hidden content-section" id="content-stats">

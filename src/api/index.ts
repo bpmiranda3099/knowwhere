@@ -6,6 +6,9 @@ import { config } from '../config/env';
 import { registerSearchRoutes } from './routes/search';
 import { registerHealthRoutes } from './routes/health';
 import { registerIngestRoutes } from './routes/ingest';
+import { registerStatsRoutes } from './routes/stats';
+import { registerLogsRoutes } from './routes/logs';
+import { registerEvaluateRoutes } from './routes/evaluate';
 import { apiKeyGuard } from './hooks/auth';
 import { RATE_LIMIT_ALLOWLIST } from '../config/system/constants';
 
@@ -32,7 +35,10 @@ export async function buildServer() {
 
   app.addHook('onRequest', apiKeyGuard);
   await registerHealthRoutes(app);
+  await registerStatsRoutes(app);
+  await registerLogsRoutes(app);
   await registerIngestRoutes(app);
+  await registerEvaluateRoutes(app);
   await registerSearchRoutes(app);
 
   return app;
