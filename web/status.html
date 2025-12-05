@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KnowWhere Status</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { font-family: "Inter", system-ui, -apple-system, sans-serif; background: #0b0f16; color: #e9edf5; margin: 0; padding: 24px; }
+    h1, h2 { margin: 0 0 12px; }
+    .card { background: #121826; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .ok { background: #1b4332; color: #d1fae5; }
+    .warn { background: #6b21a8; color: #f3e8ff; }
+    .fail { background: #7f1d1d; color: #fee2e2; }
+    .metric-bar { height: 10px; border-radius: 6px; background: #1f2937; overflow: hidden; margin-top: 6px; }
+    .metric-bar > div { height: 100%; background: linear-gradient(90deg, #60a5fa, #a78bfa); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #1f2937; font-size: 14px; }
+    .hint { color: #9ca3af; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>KnowWhere Status</h1>
+
+  <div class="card">
+    <h2>Services</h2>
+    <div id="services" class="status-grid">
+      <div>Loading...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Phase II Evaluation (latest)</h2>
+    <div class="hint">Snapshot from tests/phase2/results/phase2-1764404796858.json</div>
+    <div id="eval-summary"></div>
+    <h3>Modes @5</h3>
+    <table id="mode-table">
+      <thead>
+        <tr><th>Mode</th><th>Precision@5</th><th>Recall@5</th><th>MRR@5</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h3>Latency (ms)</h3>
+    <table id="latency-table">
+      <thead>
+        <tr><th>Mode</th><th>p50</th><th>p90</th><th>p95</th><th>p99</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h3>Buckets (Hybrid @5 MRR)</h3>
+    <div id="buckets"></div>
+  </div>
+
+  <script>
+    const evalData = {
+      acceptance: { precisionLift: 0.15, p95: 564.4, noisyDrop: -0.20 },
+      modes: {
+        lexical: { precision5: 0.05, recall5: 0.19, mrr5: 0.16 },
+        semantic: { precision5: 0.125, recall5: 0.56, mrr5: 0.56 },
+        hybrid: { precision5: 0.25, recall5: 0.81, mrr5: 0.69 }
+      },
+      latency: {
+        lexical: { p50: 3.8, p90: 5.2, p95: 6.1, p99: 7.4 },
+        semantic: { p50: 152.4, p90: 310.7, p95: 420.1, p99: 530.5 },
+        hybrid: { p50: 201.2, p90: 410.3, p95: 564.4, p99: 740.6 }
+      },
+      buckets: {
+        keyword: 0.75,
+        conceptual: 0.75,
+        longtail: 0.75,
+        noisy: 0.60
+      }
+    };
+
+    async function loadStatus() {
+      const servicesEl = document.getElementById('services');
+      servicesEl.innerHTML = '';
+      const modeBody = document.querySelector('#mode-table tbody');
+      modeBody.innerHTML = '';
+      const latBody = document.querySelector('#latency-table tbody');
+      latBody.innerHTML = '';
+      document.getElementById('buckets').innerHTML = '';
+
+      try {
+        const res = await fetch('http://localhost:3000/status');
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = await res.json();
+
+        (data.services || []).forEach((r) => {
+          const div = document.createElement('div');
+          const badgeClass = r.status === 'ok' ? 'ok' : r.status === 'warn' ? 'warn' : 'fail';
+          div.className = 'card';
+          div.innerHTML = `<strong>${r.name}</strong><br><span class="badge ${badgeClass}">${r.status.toUpperCase()}</span><div class="hint">${r.detail ?? ''}</div>`;
+          servicesEl.appendChild(div);
+        });
+
+        if (data.eval?.acceptance) {
+          const summaryEl = document.getElementById('eval-summary');
+          summaryEl.innerHTML = `
+            <div class="hint">Precision lift vs BM25: ${data.eval.acceptance.precisionLift?.toFixed(3)} | p95 latency: ${data.eval.acceptance.p95?.toFixed(1)} ms | Noisy drop: ${(data.eval.acceptance.noisyDrop * 100).toFixed(1)}%</div>
+          `;
+        }
+
+        const evalAgg = data.eval?.aggregates ?? [];
+        ['lexical','semantic','hybrid'].forEach((m) => {
+          const row = evalAgg.find((a) => a.mode === m && a.k === 5 && a.metric === 'precision' && a.bucket === 'all');
+          const rec = evalAgg.find((a) => a.mode === m && a.k === 5 && a.metric === 'recall' && a.bucket === 'all');
+          const mrr = evalAgg.find((a) => a.mode === m && a.k === 5 && a.metric === 'mrr' && a.bucket === 'all');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${m}</td><td>${row?.mean?.toFixed(3) ?? 'n/a'}</td><td>${rec?.mean?.toFixed(3) ?? 'n/a'}</td><td>${mrr?.mean?.toFixed(3) ?? 'n/a'}</td>`;
+          modeBody.appendChild(tr);
+        });
+
+        const lat = data.eval?.latency ?? [];
+        ['lexical','semantic','hybrid'].forEach((m) => {
+          const row = lat.find((l) => l.mode === m);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${m}</td><td>${row?.p50?.toFixed(1) ?? 'n/a'}</td><td>${row?.p90?.toFixed(1) ?? 'n/a'}</td><td>${row?.p95?.toFixed(1) ?? 'n/a'}</td><td>${row?.p99?.toFixed(1) ?? 'n/a'}</td>`;
+          latBody.appendChild(tr);
+        });
+
+        const buckets = document.getElementById('buckets');
+        const bucketMetrics = (b) => evalAgg.find((a) => a.mode === 'hybrid' && a.k === 5 && a.metric === 'mrr' && a.bucket === b)?.mean ?? 0;
+        ['keyword','conceptual','longtail','noisy'].forEach((b) => {
+          const val = bucketMetrics(b);
+          const div = document.createElement('div');
+          div.innerHTML = `<div style="display:flex;justify-content:space-between;"><strong>${b}</strong><span>${val.toFixed(2)}</span></div>`;
+          const bar = document.createElement('div');
+          bar.className = 'metric-bar';
+          const fill = document.createElement('div');
+          fill.style.width = `${Math.min(val,1)*100}%`;
+          bar.appendChild(fill);
+          div.appendChild(bar);
+          buckets.appendChild(div);
+        });
+      } catch (err) {
+        servicesEl.innerHTML = `<div class="hint">Status fetch failed: ${err.message}</div>`;
+      }
+    }
+
+    loadStatus();
+    setInterval(loadStatus, 30_000);
+  </script>
+</body>
+</html>

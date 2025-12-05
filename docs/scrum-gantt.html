@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprint Schedule - Portrait Mode</title>
+    <style>
+        :root {
+            /* Color Palette (HUSL-like) */
+            --c1: #F78DA7; --c2: #F79C7E; --c3: #F0B160; --c4: #CFC255; 
+            --c5: #9FDA63; --c6: #66E692; --c7: #50E5C5; --c8: #5CE0EA; 
+            --c9: #7ACDFA; --c10: #A8BAFA; --cadence: #DDAAF8;
+            
+            --border-color: #ddd;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            -webkit-print-color-adjust: exact; /* Ensures colors print */
+            print-color-adjust: exact;
+        }
+
+        /* Portrait Document Container (A4 width approx) */
+        .document-container {
+            max-width: 210mm; /* A4 Width */
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+
+        /* Grid Layout */
+        .gantt-row {
+            display: grid;
+            /* Goal (15%) | Timeline (85%) */
+            grid-template-columns: 15% 85%; 
+            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+            align-items: center;
+            font-size: 11px; /* Smaller font for portrait fit */
+            line-height: 1.3;
+        }
+
+        .gantt-header {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #ccc;
+            padding: 10px 0;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        /* Column Styles */
+        .col-goal {
+            padding-right: 10px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .deliverables-rows {
+            margin-top: 6px;
+        }
+        .deliverables-rows div {
+            font-style: normal;
+            color: #777;
+            font-size: 11px;
+            margin: 2px 0;
+            font-weight: 400;
+        }
+        .deliverables-rows .note {
+            font-weight: 400;
+            color: #777;
+        }
+
+        .col-timeline {
+            position: relative;
+            height: 100%;
+            min-height: 65px;
+            border-left: 1px dashed #e0e0e0;
+            border-right: 1px dashed #e0e0e0;
+            /* Background grid: thin month and week lines only (no fill) */
+            background-image:
+                linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+                linear-gradient(to right, #f2f2f2 1px, transparent 1px);
+            background-size: 10% 100%, 2.5% 100%;
+            background-repeat: repeat-x;
+        }
+
+        /* The Gantt Bar */
+        .bar {
+            position: absolute;
+            top: 12px;
+            transform: none;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.2);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            color: white; /* Text color inside bar for duration */
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 2;
+            left: var(--bar-left, 0%);
+            width: var(--bar-width, 100%);
+            background-color: var(--bar-color, #ccc);
+        }
+
+        .bar span {
+            margin-left: 5px;
+            text-shadow: 0px 0px 2px rgba(0,0,0,0.5);
+        }
+
+        .subbars {
+            position: absolute;
+            top: 42px;
+            left: var(--bar-left, 0%);
+            width: var(--bar-width, 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .subbar {
+            height: 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.12);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.08);
+            opacity: 0.9;
+            position: relative;
+            left: var(--sub-left, 0);
+            width: var(--sub-width, 100%);
+        }
+
+        .sub1 { background-color: var(--sub1, #999); }
+        .sub2 { background-color: var(--sub2, #aaa); }
+        .sub3 { background-color: var(--sub3, #bbb); }
+        .sub4 { background-color: var(--sub4, #ccc); }
+        /* Month markers header */
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #888;
+            padding: 0 5px;
+        }
+        
+        .sprint-label {
+            display: block;
+            color: #888;
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+
+        /* Dynamic Classes for Colors */
+        .s1 { --bar-color: var(--c1); --bar-left: 0%;   --bar-width: 10%;   --sub1: rgba(247,141,167,0.9); --sub2: rgba(247,141,167,0.75); --sub3: rgba(247,141,167,0.6); }
+        .s2 { --bar-color: var(--c2); --bar-left: 10%;  --bar-width: 12.5%; --sub1: rgba(247,156,126,0.9); --sub2: rgba(247,156,126,0.75); --sub3: rgba(247,156,126,0.6); }
+        .s3 { --bar-color: var(--c3); --bar-left: 22.5%; --bar-width: 12.5%; --sub1: rgba(240,177,96,0.9); --sub2: rgba(240,177,96,0.75); --sub3: rgba(240,177,96,0.6); }
+        .s4 { --bar-color: var(--c4); --bar-left: 35%;  --bar-width: 12.5%; --sub1: rgba(207,194,85,0.9); --sub2: rgba(207,194,85,0.75); --sub3: rgba(207,194,85,0.6); }
+        .s5 { --bar-color: var(--c5); --bar-left: 47.5%; --bar-width: 10%;  --sub1: rgba(159,218,99,0.9); --sub2: rgba(159,218,99,0.75); --sub3: rgba(159,218,99,0.6); }
+        .s6 { --bar-color: var(--c6); --bar-left: 57.5%; --bar-width: 10%;  --sub1: rgba(102,230,146,0.9); --sub2: rgba(102,230,146,0.75); --sub3: rgba(102,230,146,0.6); --sub4: rgba(102,230,146,0.5); }
+        .s7 { --bar-color: var(--c7); --bar-left: 67.5%; --bar-width: 10%;  --sub1: rgba(80,229,197,0.9); --sub2: rgba(80,229,197,0.75); --sub3: rgba(80,229,197,0.6); }
+        .s8 { --bar-color: var(--c8); --bar-left: 77.5%; --bar-width: 10%;  --sub1: rgba(92,224,234,0.9); --sub2: rgba(92,224,234,0.75); --sub3: rgba(92,224,234,0.6); }
+        .s9 { --bar-color: var(--c9); --bar-left: 87.5%; --bar-width: 7.5%; --sub1: rgba(122,205,250,0.9); --sub2: rgba(122,205,250,0.75); --sub3: rgba(122,205,250,0.6); }
+        .s10 { --bar-color: var(--c10); --bar-left: 95%; --bar-width: 5%;   --sub1: rgba(168,186,250,0.9); --sub2: rgba(168,186,250,0.75); --sub3: rgba(168,186,250,0.6); }
+        .cadence { background-color: var(--cadence); left: 0%; width: 100%; opacity: 0.8; }
+
+        /* Print Settings */
+        @media print {
+            body { background: white; padding: 0; }
+            .document-container { box-shadow: none; max-width: 100%; width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="document-container">
+    <h2>Project Roadmap</h2>
+    <div class="subtitle">Timeline: August 2025 - May 2026</div>
+
+    <div class="gantt-row gantt-header">
+        <div class="col-goal" style="text-align: center;">Sprint Objective</div>
+        <div class="col-timeline">
+            <div class="timeline-header">
+                <span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 1</span>
+            Inception & Planning
+            <div class="deliverables-rows">
+                <div class="note">Requirements gathering</div>
+                <div class="note">Feasibility analysis</div>
+                <div class="note">Scope definition (SOW)</div>
+            </div>
+        </div>
+        <div class="col-timeline s1">
+            <div class="bar"><span>30 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:40%; --sub-left:0%;" title="Requirements gathering"></div>
+                <div class="subbar sub2" style="--sub-width:35%; --sub-left:40%;" title="Feasibility analysis"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Scope definition"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 2</span>
+            Requirements & Architecture
+            <div class="deliverables-rows">
+                <div>System architecture</div>
+                <div>Database design (ERD)</div>
+                <div>Tech stack selection</div>
+            </div>
+        </div>
+        <div class="col-timeline s2">
+            <div class="bar"><span>36 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:40%; --sub-left:0%;" title="System architecture"></div>
+                <div class="subbar sub2" style="--sub-width:35%; --sub-left:40%;" title="Database design (ERD)"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Tech stack selection"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 3</span>
+            Detailed Design
+            <div class="deliverables-rows">
+                <div>API specification</div>
+                <div>UI/UX design</div>
+                <div>Data flow design</div>
+            </div>
+        </div>
+        <div class="col-timeline s3">
+            <div class="bar"><span>40 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:45%; --sub-left:0%;" title="API specification"></div>
+                <div class="subbar sub2" style="--sub-width:30%; --sub-left:45%;" title="UI/UX design"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Data flow design"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 4</span>
+            Core Development
+            <div class="deliverables-rows">
+                <div>Frontend implementation</div>
+                <div>Backend implementation</div>
+                <div>Authentication setup</div>
+            </div>
+        </div>
+        <div class="col-timeline s4">
+            <div class="bar"><span>42 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:40%; --sub-left:0%;" title="Frontend implementation"></div>
+                <div class="subbar sub2" style="--sub-width:35%; --sub-left:40%;" title="Backend implementation"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Authentication setup"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 5</span>
+            Integration
+            <div class="deliverables-rows">
+                <div>Module integration</div>
+                <div>Code review</div>
+                <div>Unit testing</div>
+            </div>
+        </div>
+        <div class="col-timeline s5">
+            <div class="bar"><span>31 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:45%; --sub-left:0%;" title="Module integration"></div>
+                <div class="subbar sub2" style="--sub-width:30%; --sub-left:45%;" title="Code review"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Unit testing"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 6</span>
+            System Testing (ISO 25010)
+            <div class="deliverables-rows">
+                <div>Functional suitability</div>
+                <div>Compatibility testing</div>
+                <div>Security testing</div>
+                <div>Usability testing</div>
+            </div>
+        </div>
+        <div class="col-timeline s6">
+            <div class="bar"><span>35 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:30%; --sub-left:0%;" title="Functional suitability"></div>
+                <div class="subbar sub2" style="--sub-width:25%; --sub-left:30%;" title="Compatibility testing"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:55%;" title="Security testing"></div>
+                <div class="subbar sub4" style="--sub-width:20%; --sub-left:80%;" title="Usability testing"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 7</span>
+            Stabilization
+            <div class="deliverables-rows">
+                <div>Regression testing</div>
+                <div>Defect resolution</div>
+                <div>Maintainability check</div>
+            </div>
+        </div>
+        <div class="col-timeline s7">
+            <div class="bar"><span>30 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:45%; --sub-left:0%;" title="Regression testing"></div>
+                <div class="subbar sub2" style="--sub-width:30%; --sub-left:45%;" title="Defect resolution"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Maintainability check"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 8</span>
+            UAT & Training
+            <div class="deliverables-rows">
+                <div>User acceptance testing</div>
+                <div>Documentation</div>
+            </div>
+        </div>
+        <div class="col-timeline s8">
+            <div class="bar"><span>31 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:60%; --sub-left:0%;" title="User acceptance testing"></div>
+                <div class="subbar sub2" style="--sub-width:40%; --sub-left:60%;" title="Documentation"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 9</span>
+            Non-Functional Testing
+            <div class="deliverables-rows">
+                <div>Performance efficiency testing</div>
+                <div>Reliability testing</div>
+                <div>Portability testing</div>
+            </div>
+        </div>
+        <div class="col-timeline s9">
+            <div class="bar"><span>28 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:40%; --sub-left:0%;" title="Performance efficiency"></div>
+                <div class="subbar sub2" style="--sub-width:30%; --sub-left:40%;" title="Reliability testing"></div>
+                <div class="subbar sub3" style="--sub-width:30%; --sub-left:70%;" title="Portability testing"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row">
+        <div class="col-goal">
+            <span class="sprint-label">Sprint 10</span>
+            Deployment (Transition)
+            <div class="deliverables-rows">
+                <div>Production deployment</div>
+                <div>Smoke testing</div>
+                <div>Project handover</div>
+            </div>
+        </div>
+        <div class="col-timeline s10">
+            <div class="bar"><span>30 days</span></div>
+            <div class="subbars">
+                <div class="subbar sub1" style="--sub-width:50%; --sub-left:0%;" title="Production deployment"></div>
+                <div class="subbar sub2" style="--sub-width:25%; --sub-left:50%;" title="Smoke testing"></div>
+                <div class="subbar sub3" style="--sub-width:25%; --sub-left:75%;" title="Project handover"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gantt-row" style="border-bottom: none; background-color: #fafafa;">
+        <div class="col-goal">
+            <span class="sprint-label">Ongoing</span>
+            Scrum Ceremonies
+            <div class="deliverables-rows">
+                <div>Planning</div>
+                <div>Stand-ups</div>
+                <div>Reviews</div>
+                <div>Retrospectives</div>
+                <div>Documentation</div>
+            </div>
+        </div>
+        <div class="col-timeline">
+            <div class="bar cadence"><span>~300 days</span></div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

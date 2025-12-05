@@ -9,6 +9,7 @@ import { registerIngestRoutes } from './routes/ingest';
 import { registerStatsRoutes } from './routes/stats';
 import { registerLogsRoutes } from './routes/logs';
 import { registerEvaluateRoutes } from './routes/evaluate';
+import { registerStatusRoutes } from './routes/status';
 import { apiKeyGuard } from './hooks/auth';
 import { RATE_LIMIT_ALLOWLIST } from '../config/system/constants';
 
@@ -39,6 +40,7 @@ export async function buildServer() {
   await registerLogsRoutes(app);
   await registerIngestRoutes(app);
   await registerEvaluateRoutes(app);
+  await registerStatusRoutes(app);
   await registerSearchRoutes(app);
 
   return app;
