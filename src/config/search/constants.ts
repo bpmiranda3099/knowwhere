@@ -16,8 +16,8 @@ export const SEARCH_CANDIDATES = {
 };
 
 export const SEARCH_WEIGHTS = {
-  lexical: 0.4,
-  semantic: 0.6
+  lexical: 0.25,
+  semantic: 0.75
 };
 
 export const SNIPPET_LENGTH = 240;

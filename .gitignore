@@ -50,3 +50,16 @@ docker-compose.override.yml
 
 # Misc
 Thumbs.db
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
+
+# Hugging Face
+models
+
+# Documentation
+.vercel
+
+# Tests
+tests/ir-metrics/results
+

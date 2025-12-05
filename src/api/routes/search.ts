@@ -22,7 +22,7 @@ const bodySchema = z.object({
 });
 
 export async function registerSearchRoutes(app: FastifyInstance): Promise<void> {
-  app.post('/search', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req, reply) => {
+  app.post('/search', { config: { rateLimit: { max: 500, timeWindow: '1 minute' } } }, async (req, reply) => {
     const parsed = bodySchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: parsed.error.flatten() });

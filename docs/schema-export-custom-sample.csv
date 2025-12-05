@@ -1,0 +1,115 @@
+custom,service_common,venues,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,venues,name,2,text,N,UNIQUE,N,N,N
+custom,service_common,venues,type,3,text,N,N,N,N,N
+custom,service_common,venues,acronym,4,text,N,N,N,N,N
+custom,service_common,venues,url,5,text,N,N,N,N,N
+custom,service_common,languages,code,1,text,N,PRIMARY KEY,N,N,N
+custom,service_common,languages,name,2,text,N,N,N,N,N
+custom,service_common,sources,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,sources,name,2,text,N,UNIQUE,N,N,N
+custom,service_common,sources,base_url,3,text,N,N,N,N,N
+custom,service_common,sources,last_synced_at,4,timestamptz,N,N,N,N,N
+custom,service_common,sources,notes,5,text,N,N,N,N,N
+custom,service_common,papers,id,1,text,N,PRIMARY KEY,N,N,N
+custom,service_common,papers,title,2,text,N,N,N,N,N
+custom,service_common,papers,abstract,3,text,N,N,N,N,N
+custom,service_common,papers,authors,4,text[],N,N,N,N,N
+custom,service_common,papers,venue,5,text,N,N,N,N,N
+custom,service_common,papers,venue_id,6,bigint,N,FOREIGN KEY,service_common,venues,id
+custom,service_common,papers,year,7,int,N,N,N,N,N
+custom,service_common,papers,doi,8,text,N,N,N,N,N
+custom,service_common,papers,url,9,text,N,N,N,N,N
+custom,service_common,papers,subjects,10,text[],N,N,N,N,N
+custom,service_common,papers,source,11,text,N,N,N,N,N
+custom,service_common,papers,source_id,12,bigint,N,FOREIGN KEY,service_common,sources,id
+custom,service_common,papers,language_code,13,text,N,FOREIGN KEY,service_common,languages,code
+custom,service_common,papers,license,14,text,N,N,N,N,N
+custom,service_common,papers,embedding,15,vector(768),N,N,N,N,N
+custom,service_common,papers,tsv,16,tsvector,N,N,N,N,N
+custom,service_common,authors,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,authors,name,2,text,N,N,N,N,N
+custom,service_common,authors,orcid,3,text,N,N,N,N,N
+custom,service_common,affiliations,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,affiliations,name,2,text,N,N,N,N,N
+custom,service_common,affiliations,country_code,3,text,N,N,N,N,N
+custom,service_common,paper_authors,paper_id,1,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,paper_authors,author_id,2,bigint,N,FOREIGN KEY,service_common,authors,id
+custom,service_common,paper_authors,author_order,3,int,N,N,N,N,N
+custom,service_common,paper_authors,affiliation_id,4,bigint,N,FOREIGN KEY,service_common,affiliations,id
+custom,service_common,subjects,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,subjects,code,2,text,N,UNIQUE,N,N,N
+custom,service_common,subjects,name,3,text,N,N,N,N,N
+custom,service_common,paper_subjects,paper_id,1,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,paper_subjects,subject_id,2,bigint,N,FOREIGN KEY,service_common,subjects,id
+custom,service_common,paper_chunks,chunk_id,1,serial,N,PRIMARY KEY,N,N,N
+custom,service_common,paper_chunks,paper_id,2,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,paper_chunks,chunk_text,3,text,N,N,N,N,N
+custom,service_common,paper_chunks,chunk_embedding,4,vector(768),N,N,N,N,N
+custom,service_common,paper_chunks,tsv,5,tsvector,N,N,N,N,N
+custom,service_common,embeddings,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,embeddings,paper_id,2,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,embeddings,chunk_id,3,int,N,FOREIGN KEY,service_common,paper_chunks,chunk_id
+custom,service_common,embeddings,model,4,text,N,N,N,N,N
+custom,service_common,embeddings,vector,5,vector(768),N,N,N,N,N
+custom,service_common,embeddings,created_at,6,timestamptz,N,N,N,N,N
+custom,service_common,ingest_runs,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,ingest_runs,source_id,2,bigint,N,FOREIGN KEY,service_common,sources,id
+custom,service_common,ingest_runs,started_at,3,timestamptz,N,N,N,N,N
+custom,service_common,ingest_runs,finished_at,4,timestamptz,N,N,N,N,N
+custom,service_common,ingest_runs,status,5,text,N,N,N,N,N
+custom,service_common,ingest_runs,records_ingested,6,int,N,N,N,N,N
+custom,service_common,ingest_runs,error,7,text,N,N,N,N,N
+custom,service_common,citations,citing_paper_id,1,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,citations,cited_paper_id,2,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,citations,context,3,text,N,N,N,N,N
+custom,service_common,citations,citation_type,4,text,N,N,N,N,N
+custom,service_common,citations,year,5,int,N,N,N,N,N
+custom,service_common,fulltexts,paper_id,1,text,N,PRIMARY KEY,service_common,papers,id
+custom,service_common,fulltexts,text,2,text,N,N,N,N,N
+custom,service_common,fulltexts,checksum,3,text,N,N,N,N,N
+custom,service_common,fulltexts,fetched_at,4,timestamptz,N,N,N,N,N
+custom,service_common,pdf_assets,paper_id,1,text,N,FOREIGN KEY,service_common,papers,id
+custom,service_common,pdf_assets,storage_uri,2,text,N,N,N,N,N
+custom,service_common,pdf_assets,mime_type,3,text,N,N,N,N,N
+custom,service_common,pdf_assets,checksum,4,text,N,N,N,N,N
+custom,service_common,pdf_assets,bytes,5,bigint,N,N,N,N,N
+custom,service_common,pdf_assets,fetched_at,6,timestamptz,N,N,N,N,N
+custom,service_common,api_keys,id,1,bigint,N,PRIMARY KEY,N,N,N
+custom,service_common,api_keys,key_hash,2,text,N,UNIQUE,N,N,N
+custom,service_common,api_keys,name,3,text,N,N,N,N,N
+custom,service_common,api_keys,scopes,4,text[],N,N,N,N,N
+custom,service_common,api_keys,created_at,5,timestamptz,N,N,N,N,N
+custom,service_common,api_keys,last_used_at,6,timestamptz,N,N,N,N,N
+custom,service_common,api_keys,active,7,boolean,N,N,N,N,N
+custom,service_common,search_logs,id,1,bigserial,N,PRIMARY KEY,N,N,N
+custom,service_common,search_logs,query,2,text,N,N,N,N,N
+custom,service_common,search_logs,filters,3,jsonb,N,N,N,N,N
+custom,service_common,search_logs,result_count,4,int,N,N,N,N,N
+custom,service_common,search_logs,duration_ms,5,int,N,N,N,N,N
+custom,service_common,search_logs,created_at,6,timestamptz,N,N,N,N,N
+custom,service_common,search_logs,api_key_id,7,bigint,N,FOREIGN KEY,service_common,api_keys,id
+custom,service_common,openlibrary_books,id,1,text,N,PRIMARY KEY,N,N,N
+custom,service_common,openlibrary_books,title,2,text,N,N,N,N,N
+custom,service_common,openlibrary_books,authors,3,text[],N,N,N,N,N
+custom,service_common,openlibrary_books,publish_year,4,int,N,N,N,N,N
+custom,service_common,openlibrary_books,isbn,5,text[],N,N,N,N,N
+custom,service_common,openlibrary_books,subjects,6,text[],N,N,N,N,N
+custom,service_common,openlibrary_books,source_id,7,bigint,N,FOREIGN KEY,service_common,sources,id
+custom,service_common,openlibrary_books,language_code,8,text,N,FOREIGN KEY,service_common,languages,code
+custom,service_common,openlibrary_books,tsv,9,tsvector,N,N,N,N,N
+custom,service_common,user_clones,id,1,text,N,PRIMARY KEY,N,N,N
+custom,service_common,user_clones,provider,2,text,N,N,N,N,N
+custom,service_common,user_clones,provider_user_id,3,text,N,N,N,N,N
+custom,service_common,user_clones,email,4,text,N,N,N,N,N
+custom,service_common,user_clones,created_at,5,timestamptz,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,_id,1,string,N,PRIMARY KEY,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,provider,2,string,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,providerUserId,3,string,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,email,4,string,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,createdAt,5,datetime,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,_id,1,string,N,PRIMARY KEY,N,N,N
+custom,knowwhere_mongo,SerialKeys,serialKey,2,string,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,status,3,string,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,linkedOAuthAccountId,4,string,N,FOREIGN KEY,knowwhere_mongo,OAuthAccounts,_id
+custom,knowwhere_mongo,SerialKeys,expiresAt,5,datetime,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,createdAt,6,datetime,N,N,N,N,N

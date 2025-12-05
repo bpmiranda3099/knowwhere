@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "web/**", "use": "@vercel/static" },
+    { "src": "api/**/*.ts", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/auth/start", "dest": "/api/auth/start.ts" },
+    { "src": "/api/auth/callback", "dest": "/api/auth/callback.ts" },
+    { "src": "/api/auth/me", "dest": "/api/auth/me.ts" },
+    { "src": "/api/auth/logout", "dest": "/api/auth/logout.ts" },
+    { "src": "/api/keys/latest", "dest": "/api/keys/latest.ts" },
+    { "src": "/api/keys/generate", "dest": "/api/keys/generate.ts" },
+    { "src": "/api/config/get", "dest": "/api/config/get.ts" },
+    { "src": "/api/config/set", "dest": "/api/config/set.ts" },
+    { "src": "/api/config/set-global", "dest": "/api/config/setGlobal.ts" },
+    { "src": "/api/config/by-key", "dest": "/api/config/byKey.ts" },
+    { "src": "/api/license/validate", "dest": "/api/license/validate.ts" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/", "dest": "/web/index.html" },
+    { "src": "/web", "dest": "/web/index.html" },
+    { "src": "/web/(.*)", "dest": "/web/$1" },
+    { "src": "/(.*)", "dest": "/web/$1" }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "description": "Phase II RAG evaluation set aligned to Phase I pain points. Replace paper ids with actual IDs present in your database before running.",
+    "kValues": [5, 10],
+    "buckets": {
+      "keyword": "Short keyword queries for fast exact lookup.",
+      "conceptual": "Concept/natural language questions where Phase I noted semantic gaps.",
+      "longtail": "Discipline-specific or tail distributions to check coverage.",
+      "noisy": "Noisy/OCR style inputs to ensure robustness."
+    },
+    "targets": {
+      "precision5LiftOverBm25": 0.1,
+      "p95LatencyMs": 800,
+      "noisyDropTolerance": 0.05
+    }
+  },
+  "queries": [
+    {
+      "id": "kw-1",
+      "q": "graph neural networks survey",
+      "bucket": "keyword",
+      "relevantIds": ["http://arxiv.org/abs/1812.08434v6"],
+      "filters": { "yearFrom": 2018, "subject": "cs.LG" },
+      "needTag": "fast exact retrieval"
+    },
+    {
+      "id": "kw-2",
+      "q": "transformer positional encodings",
+      "bucket": "keyword",
+      "relevantIds": ["http://arxiv.org/abs/1706.03762v7"],
+      "filters": { "yearFrom": 2017, "subject": "cs.CL" },
+      "needTag": "fast exact retrieval"
+    },
+    {
+      "id": "concept-1",
+      "q": "how do diffusion models denoise images",
+      "bucket": "conceptual",
+      "relevantIds": ["http://arxiv.org/abs/2006.11239v2", "10.1109/cvpr52688.2022.00127"],
+      "needTag": "concept passages"
+    },
+    {
+      "id": "concept-2",
+      "q": "methods to align language models with human preferences",
+      "bucket": "conceptual",
+      "relevantIds": ["http://arxiv.org/abs/2203.02155v1", "http://arxiv.org/abs/2204.05862v1"],
+      "needTag": "concept passages"
+    },
+    {
+      "id": "tail-1",
+      "q": "phylogenetic tree reconciliation algorithms for gene duplication",
+      "bucket": "longtail",
+      "relevantIds": [
+        "10.1093/molbev/msw046",
+        "10.1186/1471-2105-13-s10-s14",
+        "10.1186/1471-2105-13-s10-s11",
+        "10.1023/a:1020667228952"
+      ],
+      "needTag": "discipline coverage"
+    },
+    {
+      "id": "tail-2",
+      "q": "finite element methods for viscoelastic soil response",
+      "bucket": "longtail",
+      "relevantIds": [
+        "10.1061/(asce)gm.1943-5622.0000568",
+        "10.1016/j.still.2011.10.016",
+        "10.5772/9794",
+        "10.5772/10009"
+      ],
+      "needTag": "discipline coverage"
+    },
+    {
+      "id": "noisy-1",
+      "q": "noisy ocr text: transf0rmer based languag3 models",
+      "bucket": "noisy",
+      "relevantIds": ["http://arxiv.org/abs/1706.03762v7"],
+      "needTag": "robust to OCR"
+    },
+    {
+      "id": "noisy-2",
+      "q": "handwriten math expression recognit1on with cnn rnn hybryd",
+      "bucket": "noisy",
+      "relevantIds": ["http://arxiv.org/abs/2404.10690v2"],
+      "needTag": "robust to OCR"
+    }
+  ]
+}

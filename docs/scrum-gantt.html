@@ -151,6 +151,14 @@
             left: var(--sub-left, 0);
             width: var(--sub-width, 100%);
         }
+        .subbar::after {
+            content: attr(data-days);
+            display: block;
+            margin-top: 2px;
+            font-size: 8px;
+            color: #555;
+            text-align: center;
+        }
 
         .sub1 { background-color: var(--sub1, #999); }
         .sub2 { background-color: var(--sub2, #aaa); }
@@ -158,11 +166,13 @@
         .sub4 { background-color: var(--sub4, #ccc); }
         /* Month markers header */
         .timeline-header {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(10, 10%);
             font-size: 9px;
             color: #888;
             padding: 0 5px;
+            text-align: center;
+            align-items: center;
         }
         
         .sprint-label {

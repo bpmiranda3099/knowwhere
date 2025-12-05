@@ -8,34 +8,66 @@
   <link rel="stylesheet" href="css/style.css" media="all">
 </head>
 <body>
-<div class="left-menu">
-  <div class="content-logo">
-    <div class="logo">
-      <img alt="KnowWhere" title="KnowWhere" src="images/logo.png" height="32" />
-    </div>
-    <button class="burger-menu-icon" id="button-menu-mobile">
-      <svg width="34" height="34" viewBox="0 0 100 100"><path class="line line1" d="M 20,29.000046 H 80.000231 C 80.000231,29.000046 94.498839,28.817352 94.532987,66.711331 94.543142,77.980673 90.966081,81.670246 85.259173,81.668997 79.552261,81.667751 75.000211,74.999942 75.000211,74.999942 L 25.000021,25.000058"></path><path class="line line2" d="M 20,50 H 80"></path><path class="line line3" d="M 20,70.999954 H 80.000231 C 80.000231,70.999954 94.498839,71.182648 94.532987,33.288669 94.543142,22.019327 90.966081,18.329754 85.259173,18.331003 79.552261,18.332249 75.000211,25.000058 75.000211,25.000058 L 25.000021,74.999942"></path></svg>
-    </button>
-  </div>
-  <div class="mobile-menu-closer"></div>
-  <div class="content-menu">
-    <div class="content-infos">
-      <div class="info"><b>Version:</b> 0.1.0</div>
-      <div class="info"><b>Last Updated:</b> 22 Nov, 2025</div>
-      <div class="info"><b>Base URL:</b><br><code>http://localhost:3000</code></div>
-    </div>
-    <ul>
-      <li class="scroll-to-link" data-target="content-get-started"><a href="index.html#content-get-started">Get Started</a></li>
-      <li class="scroll-to-link" data-target="content-auth"><a href="index.html#content-auth">Auth & Rate Limits</a></li>
-      <li class="scroll-to-link" data-target="content-search"><a href="index.html#content-search">POST /search</a></li>
-      <li class="scroll-to-link" data-target="content-health"><a href="index.html#content-health">GET /health</a></li>
-      <li class="scroll-to-link" data-target="content-embedding"><a href="index.html#content-embedding">Embedding & Rerank</a></li>
-      <li class="scroll-to-link" data-target="content-errors"><a href="index.html#content-errors">Error Codes</a></li>
-      <li class="scroll-to-link active" data-target="content-playground"><a>Playground</a></li>
-    </ul>
-  </div>
-</div>
+<script>
+  // Load sidebar and GitHub corner components from `components/` and insert into the page.
+  document.addEventListener('DOMContentLoaded', async function () {
+    try {
+      const [sidebarRes, cornerRes, faviconRes] = await Promise.all([
+        fetch('components/sidebar.html'),
+        fetch('components/github-corner.html'),
+        fetch('components/favicon.html')
+      ]);
 
+      if (sidebarRes && sidebarRes.ok) {
+        const sidebarText = await sidebarRes.text();
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = sidebarText;
+        const node = wrapper.firstElementChild;
+        if (node) document.body.insertBefore(node, document.body.firstChild);
+      }
+
+      // Adjust sidebar links: point to index anchors when on other pages
+      if (sidebarRes && sidebarRes.ok) {
+        try {
+          const inserted = document.querySelector('.left-menu');
+          if (inserted) {
+            const items = inserted.querySelectorAll('.scroll-to-link');
+            items.forEach(li => {
+              const target = li.getAttribute('data-target');
+              const a = li.querySelector('a');
+              if (!a || !target) return;
+              // On pages other than api.html, point to `api.html#target`
+              const isApiPage = location.pathname.endsWith('api.html');
+              a.setAttribute('href', isApiPage ? ('#' + target) : ('api.html#' + target));
+            });
+          }
+        } catch (e) {
+          // non-fatal
+        }
+      }
+
+      if (cornerRes && cornerRes.ok) {
+        const cornerText = await cornerRes.text();
+        const wrapper2 = document.createElement('div');
+        wrapper2.innerHTML = cornerText;
+        const node2 = wrapper2.firstElementChild;
+        if (node2) document.body.appendChild(node2);
+      }
+
+      if (faviconRes && faviconRes.ok) {
+        const favText = await faviconRes.text();
+        const headWrapper = document.createElement('div');
+        headWrapper.innerHTML = favText;
+        Array.from(headWrapper.children).forEach(ch => document.head.appendChild(ch));
+      }
+
+      // Notify any scripts that components were loaded
+      document.dispatchEvent(new Event('componentsLoaded'));
+    } catch (e) {
+      console.error('Failed to load components:', e);
+    }
+  });
+</script>
 <div class="content-page">
   <div class="content-code"></div>
   <div class="content">

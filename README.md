@@ -7,6 +7,7 @@ Hybrid lexical + semantic search API for academic discovery, backed by PostgreSQ
 - PostgreSQL with `pgvector` (KNN) and full-text search (`tsvector`/`pg_trgm`).
 - Embeddings via external service (HTTP) using open models like `bge-base-en-v1.5` or `allenai/specter2`.
 - Optional reranker service (e.g., `bge-reranker-base`).
+- Offline/cache-friendly: populate `./models` with HF models (see `scripts/models/download_models.py`) and Docker builds will copy them into images via `HF_HOME=/models`.
 
 ## Setup
 1) Install dependencies: `npm install`

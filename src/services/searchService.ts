@@ -79,6 +79,11 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
       ? buildChunkQuery(request.q, mode, request.filters, limit, embedding)
       : buildPaperQuery(request.q, mode, request.filters, limit, embedding);
 
+  if (process.env.DEBUG_SEARCH) {
+    // eslint-disable-next-line no-console
+    console.log('[search debug]', { mode, level, filters: request.filters, sql, values });
+  }
+
   const { rows } = await query<PaperRow | ChunkRow>(sql, values);
 
   const baseResults: SearchResult[] = rows.map((row: PaperRow | ChunkRow) => ({
@@ -97,17 +102,21 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
   }));
 
   // Optional rerank on snippet text for top results.
+  const rerankCandidates = baseResults.slice(0, Math.min(baseResults.length, 3));
   const rerankScores =
     mode === 'hybrid' || mode === 'semantic'
       ? await rerank(
           request.q,
-          baseResults.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')
+          rerankCandidates.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')
         )
       : null;
 
   if (rerankScores) {
-    return baseResults
-      .map((result, idx) => ({ result, score: rerankScores[idx] ?? 0 }))
+    const scored = rerankCandidates.map((result, idx) => ({
+      result,
+      score: rerankScores[idx] ?? 0
+    }));
+    return scored
       .sort((a, b) => b.score - a.score)
       .map(({ result }) => result);
   }
@@ -123,9 +132,9 @@ function buildPaperQuery(
   embedding: number[] | null
 ) {
   const values: unknown[] = [q];
-  const filterSql = buildFilters('p', filters, values);
 
   if (mode === 'lexical') {
+    const filterSql = buildFilters('p', filters, values);
     values.push(limit);
     const sql = `
       WITH q AS (
@@ -151,10 +160,13 @@ function buildPaperQuery(
   }
 
   const vectorParam = vectorLiteral(embedding ?? []);
-  values.push(vectorParam);
 
   if (mode === 'semantic') {
-    values.push(limit);
+    const semanticValues: unknown[] = [];
+    const vectorIdx = semanticValues.push(vectorParam);
+    const filterSql = buildFilters('p', filters, semanticValues);
+    semanticValues.push(limit);
+    const vectorRef = `$${vectorIdx}`;
     const sql = `
       SELECT p.id,
              p.title,
@@ -165,24 +177,27 @@ function buildPaperQuery(
              p.source,
              LEFT(p.abstract, ${SNIPPET_LENGTH}) AS snippet,
              NULL::float AS lex_score,
-             1 - (p.embedding <=> $2::vector) AS sem_score,
-             1 - (p.embedding <=> $2::vector) AS hybrid_score
+             1 - (p.embedding <=> ${vectorRef}::vector) AS sem_score,
+             1 - (p.embedding <=> ${vectorRef}::vector) AS hybrid_score
       FROM papers p
       WHERE p.embedding IS NOT NULL${filterSql}
-      ORDER BY p.embedding <=> $2::vector
-      LIMIT $${values.length};
+      ORDER BY p.embedding <=> ${vectorRef}::vector
+      LIMIT $${semanticValues.length};
     `;
-    return { sql, values };
+    return { sql, values: semanticValues };
   }
 
   // hybrid
+  const filterSql = buildFilters('p', filters, values);
+  const vectorIdx = values.push(vectorParam);
   values.push(limit);
   const limitParam = values.length;
+  const vectorRef = `$${vectorIdx}`;
   const sql = `
     WITH q AS (
       SELECT
         plainto_tsquery('english', $1) AS q_ts,
-        $2::vector AS q_vec
+        ${vectorRef}::vector AS q_vec
     ),
     lex AS (
       SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, p.source,
@@ -231,9 +246,9 @@ function buildChunkQuery(
   embedding: number[] | null
 ) {
   const values: unknown[] = [q];
-  const filterSql = buildFilters('p', filters, values);
 
   if (mode === 'lexical') {
+    const filterSql = buildFilters('p', filters, values);
     values.push(limit);
     const sql = `
       WITH q AS (
@@ -261,10 +276,13 @@ function buildChunkQuery(
   }
 
   const vectorParam = vectorLiteral(embedding ?? []);
-  values.push(vectorParam);
 
   if (mode === 'semantic') {
-    values.push(limit);
+    const semanticValues: unknown[] = [];
+    const vectorIdx = semanticValues.push(vectorParam);
+    const filterSql = buildFilters('p', filters, semanticValues);
+    semanticValues.push(limit);
+    const vectorRef = `$${vectorIdx}`;
     const sql = `
       SELECT p.id,
              p.title,
@@ -276,25 +294,28 @@ function buildChunkQuery(
              c.chunk_id,
              LEFT(c.chunk_text, ${SNIPPET_LENGTH}) AS snippet,
              NULL::float AS lex_score,
-             1 - (c.chunk_embedding <=> $2::vector) AS sem_score,
-             1 - (c.chunk_embedding <=> $2::vector) AS hybrid_score
+             1 - (c.chunk_embedding <=> ${vectorRef}::vector) AS sem_score,
+             1 - (c.chunk_embedding <=> ${vectorRef}::vector) AS hybrid_score
       FROM paper_chunks c
       JOIN papers p ON c.paper_id = p.id
       WHERE c.chunk_embedding IS NOT NULL${filterSql}
-      ORDER BY c.chunk_embedding <=> $2::vector
-      LIMIT $${values.length};
+      ORDER BY c.chunk_embedding <=> ${vectorRef}::vector
+      LIMIT $${semanticValues.length};
     `;
-    return { sql, values };
+    return { sql, values: semanticValues };
   }
 
   // hybrid
+  const filterSql = buildFilters('p', filters, values);
+  const vectorIdx = values.push(vectorParam);
   values.push(limit);
   const limitParam = values.length;
+  const vectorRef = `$${vectorIdx}`;
   const sql = `
     WITH q AS (
       SELECT
         plainto_tsquery('english', $1) AS q_ts,
-        $2::vector AS q_vec
+        ${vectorRef}::vector AS q_vec
     ),
     lex AS (
       SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, p.source,

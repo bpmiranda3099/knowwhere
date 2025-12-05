@@ -1,28 +1,34 @@
 
 var elements = [];
 
-[].forEach.call(document.querySelectorAll('.scroll-to-link'), function (div) {
-    div.onclick = function (e) {
+// Use event delegation so dynamically inserted components work
+document.addEventListener('click', function (e) {
+    var li = e.target.closest('.scroll-to-link');
+    if (li) {
         e.preventDefault();
-        var target = this.dataset.target;
-        document.getElementById(target).scrollIntoView({ behavior: 'smooth' });
-        var elems = document.querySelectorAll(".content-menu ul li");
-        [].forEach.call(elems, function (el) {
-            el.classList.remove("active");
-        });
-        this.classList.add("active");
+        var target = li.dataset.target;
+        var elTarget = document.getElementById(target);
+        if (elTarget) elTarget.scrollIntoView({ behavior: 'smooth' });
+        var elems = document.querySelectorAll('.content-menu ul li');
+        [].forEach.call(elems, function (el) { el.classList.remove('active'); });
+        li.classList.add('active');
         return false;
-    };
-});
+    }
 
-document.getElementById('button-menu-mobile').onclick = function (e) {
-    e.preventDefault();
-    document.querySelector('html').classList.toggle('menu-opened');
-}
-document.querySelector('.left-menu .mobile-menu-closer').onclick = function (e) {
-    e.preventDefault();
-    document.querySelector('html').classList.remove('menu-opened');
-}
+    var btn = e.target.closest('#button-menu-mobile');
+    if (btn) {
+        e.preventDefault();
+        document.querySelector('html').classList.toggle('menu-opened');
+        return false;
+    }
+
+    var closer = e.target.closest('.left-menu .mobile-menu-closer');
+    if (closer) {
+        e.preventDefault();
+        document.querySelector('html').classList.remove('menu-opened');
+        return false;
+    }
+});
 
 function debounce (func) {
     var timer;
@@ -47,7 +53,6 @@ function calculElements () {
 
 function onScroll () {
     var scroll = window.pageYOffset;
-    console.log('scroll', scroll, elements)
     for (var i = 0; i < elements.length; i++) {
         var section = elements[i];
         if (scroll <= section.maxHeight) {
@@ -77,14 +82,24 @@ function onScroll () {
 function initCodeTabs () {
     var tabContainers = document.querySelectorAll('.code-tabs');
     [].forEach.call(tabContainers, function (container) {
+        // Replace buttons to remove previous listeners, then re-query fresh lists
+        var origButtons = container.querySelectorAll('.tab-button');
+        [].forEach.call(origButtons, function (button) {
+            var newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+        });
+
         var buttons = container.querySelectorAll('.tab-button');
         var panels = container.querySelectorAll('.tab-panel');
 
         function activateTab (tabName) {
-            [].forEach.call(buttons, function (button) {
+            // Re-query to ensure we operate on current DOM nodes
+            var btns = container.querySelectorAll('.tab-button');
+            var pans = container.querySelectorAll('.tab-panel');
+            [].forEach.call(btns, function (button) {
                 button.classList.toggle('active', button.dataset.tab === tabName);
             });
-            [].forEach.call(panels, function (panel) {
+            [].forEach.call(pans, function (panel) {
                 panel.classList.toggle('active', panel.dataset.tabPanel === tabName);
             });
         }
@@ -97,11 +112,17 @@ function initCodeTabs () {
     });
 }
 
-calculElements();
-window.onload = () => {
+// Initialize on DOM ready and when components are inserted
+document.addEventListener('DOMContentLoaded', function () {
     calculElements();
     initCodeTabs();
-};
+});
+
+// Custom event dispatched by component loaders when shared components are inserted
+document.addEventListener('componentsLoaded', function () {
+    calculElements();
+    initCodeTabs();
+});
 window.addEventListener("resize", debounce(function (e) {
     e.preventDefault();
     calculElements();

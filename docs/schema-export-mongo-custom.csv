@@ -1,0 +1,11 @@
+custom,knowwhere_mongo,OAuthAccounts,_id,1,string,N,PRIMARY KEY,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,provider,2,string,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,providerUserId,3,string,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,email,4,string,N,N,N,N,N
+custom,knowwhere_mongo,OAuthAccounts,createdAt,5,datetime,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,_id,1,string,N,PRIMARY KEY,N,N,N
+custom,knowwhere_mongo,SerialKeys,serialKey,2,string,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,status,3,string,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,linkedOAuthAccountId,4,string,N,FOREIGN KEY,knowwhere_mongo,OAuthAccounts,_id
+custom,knowwhere_mongo,SerialKeys,expiresAt,5,datetime,N,N,N,N,N
+custom,knowwhere_mongo,SerialKeys,createdAt,6,datetime,N,N,N,N,N

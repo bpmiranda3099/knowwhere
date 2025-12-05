@@ -1,0 +1,136 @@
+/* --- COLOR PALETTE & VARIABLES --- */
+:root {
+    /* --- Base Colors --- */
+    --color-main: #8500de;       /* French Violet */
+    --color-secondary: #db5edb;  /* Orchid */
+    --color-bg: #1f1f21;         /* Raisin Black */
+
+    /* --- Text Colors --- */
+    --color-text-main: #ffffff;       /* White */
+    --color-text-secondary: #0a1f44;  /* Dark Navy */
+    --color-text-highlight: #ff4d4d;  /* Red */
+    --color-text-muted: #a1a1aa;      /* Lighter secondary text for dark bg */
+
+    /* --- Header Colors --- */
+    --color-header-large: #ff4d4d;    /* H1, H2, H3 */
+    --color-header-small: #008ae3;    /* H4, H5, H6 */
+}
+
+/* --- General Setup --- */
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text-main);
+    font-family: 'Noto Sans', sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- Headers --- */
+h1, h2, h3 {
+    color: var(--color-header-large);
+}
+
+h4, h5, h6 {
+    color: var(--color-header-small);
+}
+
+/* --- Utility Classes --- */
+/* --- Custom Utilities --- */
+.btn-main {
+    background-color: var(--color-main);
+    color: white;
+    transition: all 0.3s ease;
+}
+.btn-main:hover {
+    background-color: var(--color-secondary);
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    border: 2px solid var(--color-text-main);
+    color: var(--color-text-main);
+    transition: all 0.3s ease;
+}
+.btn-outline:hover {
+    background-color: var(--color-main);
+    color: white;
+    border-color: var(--color-main);
+}
+
+.card-bg {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Hero animations */
+.hero-line {
+    display: inline-block;
+    opacity: 0;
+}
+.hero-idea {
+    animation: slide-down 0.8s ease forwards;
+}
+.hero-sources {
+    animation: slide-left 0.8s ease forwards;
+    animation-delay: 0.7s;
+}
+.hero-seconds {
+    animation: fade-in 0.6s ease forwards;
+    animation-delay: 1.4s;
+}
+@keyframes slide-down {
+    from { transform: translateY(-24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes slide-left {
+    from { transform: translateX(28px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Feature cards horizontal row + slide-in animation */
+.features-row {
+    scrollbar-width: thin;
+}
+.feature-card {
+    opacity: 0;
+    transform: translateX(-40px);
+    animation: slide-in 0.8s ease forwards;
+    animation-delay: var(--delay, 0s);
+}
+@keyframes slide-in {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* About carousel */
+.about-carousel {
+    position: relative;
+    min-height: 180px;
+}
+.about-slide {
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+.about-slide.about-active {
+    opacity: 1;
+    position: relative;
+}
+.quote-mark {
+    color: var(--color-main);
+    font-size: 1.2em;
+    font-weight: 700;
+    margin: 0 6px;
+}

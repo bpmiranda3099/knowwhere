@@ -11,6 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/api/index.js",
     "lint": "echo \"add eslint if needed\"",
+    "eval:phase2": "tsx scripts/eval/phase2.ts",
     "backfill:tsv": "tsx scripts/backfill/backfillTsv.ts",
     "backfill:embeddings": "tsx scripts/backfill/backfillEmbeddings.ts",
     "ingest:arxiv": "tsx scripts/ingest/ingestArxiv.ts",
@@ -25,6 +26,7 @@
     "@fastify/rate-limit": "^8.0.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.0",
+    "mongodb": "^6.8.0",
     "pg": "^8.12.0",
     "pdf-parse": "^1.1.1",
     "zod": "^3.23.8"
@@ -33,6 +35,7 @@
     "@types/node": "^20.11.30",
     "@types/pdf-parse": "^1.1.4",
     "@types/pg": "^8.10.9",
+    "@vercel/node": "^3.2.0",
     "tsx": "^4.19.1",
     "typescript": "^5.3.3",
     "vitest": "^1.6.0"
