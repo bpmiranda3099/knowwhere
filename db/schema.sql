@@ -31,13 +31,11 @@ CREATE TABLE IF NOT EXISTS papers (
   title TEXT,
   abstract TEXT,
   authors TEXT[],
-  venue TEXT,
   venue_id BIGINT REFERENCES venues(id),
   year INT,
   doi TEXT,
   url TEXT,
   subjects TEXT[],
-  source TEXT,
   source_id BIGINT REFERENCES sources(id),
   language_code TEXT REFERENCES languages(code),
   license TEXT,
@@ -86,17 +84,6 @@ CREATE TABLE IF NOT EXISTS paper_chunks (
   chunk_text TEXT,
   chunk_embedding VECTOR(768),
   tsv TSVECTOR
-);
-
--- Optional multi-model embeddings
-CREATE TABLE IF NOT EXISTS embeddings (
-  id BIGSERIAL PRIMARY KEY,
-  paper_id TEXT REFERENCES papers(id) ON DELETE CASCADE,
-  chunk_id INT REFERENCES paper_chunks(chunk_id) ON DELETE CASCADE,
-  model TEXT NOT NULL,
-  vector VECTOR(768),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE (paper_id, chunk_id, model)
 );
 
 -- Ingestion metadata
@@ -167,9 +154,9 @@ CREATE INDEX IF NOT EXISTS paper_chunks_tsv_idx ON paper_chunks USING GIN (tsv);
 CREATE INDEX IF NOT EXISTS paper_authors_author_idx ON paper_authors(author_id);
 CREATE INDEX IF NOT EXISTS paper_subjects_subject_idx ON paper_subjects(subject_id);
 CREATE INDEX IF NOT EXISTS citations_cited_idx ON citations(cited_paper_id);
-CREATE INDEX IF NOT EXISTS embeddings_model_idx ON embeddings(model);
 CREATE INDEX IF NOT EXISTS search_logs_created_idx ON search_logs(created_at);
 
 -- Populate tsvectors (run during ingestion/upsert)
 -- UPDATE papers SET tsv = to_tsvector('english', coalesce(title,'') || ' ' || coalesce(abstract,''));
 -- UPDATE paper_chunks SET tsv = to_tsvector('english', coalesce(chunk_text,''));
+

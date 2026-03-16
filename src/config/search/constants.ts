@@ -1,6 +1,6 @@
 export const SEARCH_LIMITS = {
-  default: 20,
-  max: 50
+  default: 50,
+  max: 100
 };
 
 export const SEARCH_VALIDATION = {

@@ -34,7 +34,7 @@ function buildFilters(
   }
   if (filters.venue) {
     values.push(filters.venue);
-    clauses.push(`${alias}.venue ILIKE $${values.length}`);
+    clauses.push(`v.name ILIKE $${values.length}`);
   }
   if (filters.subject) {
     values.push(filters.subject);
@@ -42,7 +42,7 @@ function buildFilters(
   }
   if (filters.source) {
     values.push(filters.source);
-    clauses.push(`${alias}.source = $${values.length}`);
+    clauses.push(`s.name = $${values.length}`);
   }
 
   return clauses.length ? ` AND ${clauses.join(' AND ')}` : '';
@@ -101,10 +101,11 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
     chunkId: 'chunk_id' in row ? row.chunk_id ?? undefined : undefined
   }));
 
-  // Optional rerank on snippet text for top results.
-  const rerankCandidates = baseResults.slice(0, Math.min(baseResults.length, 3));
+  // Optional rerank on top results, but keep full list.
+  const rerankTop = Math.min(baseResults.length, 20);
+  const rerankCandidates = baseResults.slice(0, rerankTop);
   const rerankScores =
-    mode === 'hybrid' || mode === 'semantic'
+    (mode === 'hybrid' || mode === 'semantic') && rerankCandidates.length
       ? await rerank(
           request.q,
           rerankCandidates.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')
@@ -116,9 +117,9 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
       result,
       score: rerankScores[idx] ?? 0
     }));
-    return scored
-      .sort((a, b) => b.score - a.score)
-      .map(({ result }) => result);
+    const reranked = scored.sort((a, b) => b.score - a.score).map(({ result }) => result);
+    const remainder = baseResults.slice(rerankTop);
+    return [...reranked, ...remainder];
   }
 
   return baseResults;
@@ -146,12 +147,15 @@ function buildPaperQuery(
              p.doi,
              p.url,
              p.subjects,
-             p.source,
+             s.name AS source,
              LEFT(p.abstract, ${SNIPPET_LENGTH}) AS snippet,
              ts_rank_cd(p.tsv, q.q_ts) AS lex_score,
              NULL::float AS sem_score,
              ts_rank_cd(p.tsv, q.q_ts) AS hybrid_score
-      FROM papers p, q
+      FROM papers p
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id,
+           q
       WHERE q.q_ts <> '' AND p.tsv @@ q.q_ts${filterSql}
       ORDER BY lex_score DESC
       LIMIT $${values.length};
@@ -174,12 +178,14 @@ function buildPaperQuery(
              p.doi,
              p.url,
              p.subjects,
-             p.source,
+             s.name AS source,
              LEFT(p.abstract, ${SNIPPET_LENGTH}) AS snippet,
              NULL::float AS lex_score,
              1 - (p.embedding <=> ${vectorRef}::vector) AS sem_score,
              1 - (p.embedding <=> ${vectorRef}::vector) AS hybrid_score
       FROM papers p
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id
       WHERE p.embedding IS NOT NULL${filterSql}
       ORDER BY p.embedding <=> ${vectorRef}::vector
       LIMIT $${semanticValues.length};
@@ -200,21 +206,27 @@ function buildPaperQuery(
         ${vectorRef}::vector AS q_vec
     ),
     lex AS (
-      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, p.source,
+      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, s.name AS source,
              LEFT(p.abstract, ${SNIPPET_LENGTH}) AS snippet,
              ts_rank_cd(p.tsv, q.q_ts) AS lex_score,
              NULL::float AS sem_score
-      FROM papers p, q
+      FROM papers p
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id,
+           q
       WHERE q.q_ts <> '' AND p.tsv @@ q.q_ts${filterSql}
       ORDER BY lex_score DESC
       LIMIT ${SEARCH_CANDIDATES.hybridLexical}
     ),
     sem AS (
-      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, p.source,
+      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, s.name AS source,
              LEFT(p.abstract, ${SNIPPET_LENGTH}) AS snippet,
              NULL::float AS lex_score,
              1 - (p.embedding <=> q.q_vec) AS sem_score
-      FROM papers p, q
+      FROM papers p
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id,
+           q
       WHERE p.embedding IS NOT NULL${filterSql}
       ORDER BY p.embedding <=> q.q_vec
       LIMIT ${SEARCH_CANDIDATES.hybridSemantic}
@@ -267,7 +279,10 @@ function buildChunkQuery(
              NULL::float AS sem_score,
              ts_rank_cd(c.tsv, q.q_ts) AS hybrid_score
       FROM paper_chunks c
-      JOIN papers p ON c.paper_id = p.id, q
+      JOIN papers p ON c.paper_id = p.id
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id,
+           q
       WHERE q.q_ts <> '' AND c.tsv @@ q.q_ts${filterSql}
       ORDER BY lex_score DESC
       LIMIT $${values.length};
@@ -290,7 +305,7 @@ function buildChunkQuery(
              p.doi,
              p.url,
              p.subjects,
-             p.source,
+             s.name AS source,
              c.chunk_id,
              LEFT(c.chunk_text, ${SNIPPET_LENGTH}) AS snippet,
              NULL::float AS lex_score,
@@ -298,6 +313,8 @@ function buildChunkQuery(
              1 - (c.chunk_embedding <=> ${vectorRef}::vector) AS hybrid_score
       FROM paper_chunks c
       JOIN papers p ON c.paper_id = p.id
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id
       WHERE c.chunk_embedding IS NOT NULL${filterSql}
       ORDER BY c.chunk_embedding <=> ${vectorRef}::vector
       LIMIT $${semanticValues.length};
@@ -318,25 +335,31 @@ function buildChunkQuery(
         ${vectorRef}::vector AS q_vec
     ),
     lex AS (
-      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, p.source,
+      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, s.name AS source,
              c.chunk_id,
              LEFT(c.chunk_text, ${SNIPPET_LENGTH}) AS snippet,
              ts_rank_cd(c.tsv, q.q_ts) AS lex_score,
              NULL::float AS sem_score
       FROM paper_chunks c
-      JOIN papers p ON c.paper_id = p.id, q
+      JOIN papers p ON c.paper_id = p.id
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id,
+           q
       WHERE q.q_ts <> '' AND c.tsv @@ q.q_ts${filterSql}
       ORDER BY lex_score DESC
       LIMIT ${SEARCH_CANDIDATES.hybridLexical}
     ),
     sem AS (
-      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, p.source,
+      SELECT p.id, p.title, p.abstract, p.doi, p.url, p.subjects, s.name AS source,
              c.chunk_id,
              LEFT(c.chunk_text, ${SNIPPET_LENGTH}) AS snippet,
              NULL::float AS lex_score,
              1 - (c.chunk_embedding <=> q.q_vec) AS sem_score
       FROM paper_chunks c
-      JOIN papers p ON c.paper_id = p.id, q
+      JOIN papers p ON c.paper_id = p.id
+      LEFT JOIN sources s ON p.source_id = s.id
+      LEFT JOIN venues v ON p.venue_id = v.id,
+           q
       WHERE c.chunk_embedding IS NOT NULL${filterSql}
       ORDER BY c.chunk_embedding <=> q.q_vec
       LIMIT ${SEARCH_CANDIDATES.hybridSemantic}

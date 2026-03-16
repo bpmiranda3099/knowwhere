@@ -503,7 +503,7 @@ pre{
     position: absolute;
     right: 26px;
     top: 26px;
-    display: none;
+    display: none !important; /* hide burger icon on all viewports */
 }
 .burger-menu-icon .line {
     fill: none;
@@ -688,7 +688,7 @@ body.one-content-column-version .content thead {
         left: 0;
         right: 0;
         z-index: 4;
-        background-color: #f4f5f8;
+        background-color: #8500de; /* match sidebar purple */
     }
     .content-logo .logo {
         margin-right: 65px;
@@ -696,9 +696,7 @@ body.one-content-column-version .content thead {
     .content-page{
         margin-left: 0;
         padding-top: 83px;
-    }
-    .burger-menu-icon {
-        display: block;
+        padding-bottom: 64px; /* leave room for mobile bottom nav */
     }
 }
 
@@ -709,8 +707,18 @@ body.one-content-column-version .content thead {
 .cf:after { clear: both; }
 .ie6 .cf { zoom: 1 }
 /* SEARCH PAGE CUSTOM */
-.search-card{border-radius:12px;}
-.search-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.search-card{
+    border-radius:12px;
+    max-width:880px;
+    margin:0 16px;
+}
+.search-row{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:nowrap;
+    margin:0 16px;
+}
 .search-input{flex:1;padding:12px 14px;border:1px solid #3a3a40;border-radius:0;font-size:16px;background:#111;color:#fff;}
 .search-input:focus{outline:none;border-color:#6ea8ff;box-shadow:0 0 0 3px rgba(110,168,255,0.18);}
 .search-actions{display:flex;gap:8px;flex-wrap:wrap;}
@@ -804,6 +812,74 @@ body.one-content-column-version .content thead {
 .row-filters .form-group input{width:140px;max-width:100%;}
 @media (max-width:900px){.row-filters{flex-wrap:wrap;}}
 #results-summary{display:none !important;}
+
+/* Mobile bottom nav (Playground / Docs) */
+@media (max-width:680px){
+  .bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:56px;
+    background:#8500de;
+    border-top:1px solid rgba(255,255,255,0.28);
+    display:flex;
+    z-index:10;
+  }
+  .bottom-nav__item{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    color:#fdfbff;
+    opacity:1;
+  }
+  .bottom-nav__item svg{
+    width:22px;
+    height:22px;
+    stroke:#ffffff;
+    fill:none;
+    stroke-width:1.8;
+    transition:transform 0.25s ease, opacity 0.25s ease;
+  }
+  .bottom-nav__label{
+    display:none; /* icons only, no text */
+  }
+  .bottom-nav__item--active{
+    opacity:1;
+    background-color:#a247ff; /* match sidebar active highlight */
+  }
+  .bottom-nav__item--active svg{
+    transform:scale(1.2); /* make active icon larger */
+  }
+
+  /* Ensure bottom content (like Error Codes) can scroll above nav */
+  #content-errors{
+    padding-bottom:72px;
+  }
+}
+/* Responsive tweaks for search bar + buttons */
+@media (max-width:700px){
+  .search-row{
+    flex-direction:column;
+    align-items:stretch;
+    margin:0 40px;
+  }
+  .search-input{
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .search-actions{
+    width:100%;
+    justify-content:stretch;
+  }
+  .search-actions .btn{
+    flex:1;
+    text-align:center;
+  }
+}
 
 /* Pagination styling */
 #pagination-top, .pagination-bottom{

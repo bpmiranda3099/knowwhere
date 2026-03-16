@@ -26,7 +26,7 @@
         if (node) document.body.insertBefore(node, document.body.firstChild);
       }
 
-      // Adjust sidebar links: point to index anchors when on other pages
+      // Adjust sidebar links: keep Playground on this page, send others to api.html anchors
       if (sidebarRes && sidebarRes.ok) {
         try {
           const inserted = document.querySelector('.left-menu');
@@ -36,10 +36,18 @@
               const target = li.getAttribute('data-target');
               const a = li.querySelector('a');
               if (!a || !target) return;
-              // On pages other than api.html, point to `api.html#target`
-              const isApiPage = location.pathname.endsWith('api.html');
-              a.setAttribute('href', isApiPage ? ('#' + target) : ('api.html#' + target));
+              if (target === 'content-playground') {
+                a.setAttribute('href', '/web/test.html');
+              } else {
+                a.setAttribute('href', '/web/api.html#' + target);
+              }
             });
+            // Highlight Playground as active on this page
+            const playgroundItem = inserted.querySelector(".scroll-to-link[data-target='content-playground']");
+            if (playgroundItem) {
+              inserted.querySelectorAll('.scroll-to-link').forEach(liEl => liEl.classList.remove('active'));
+              playgroundItem.classList.add('active');
+            }
           }
         } catch (e) {
           // non-fatal
@@ -126,5 +134,23 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.5/pagination.min.js"></script>
 <script src="js/test.js"></script>
+<div class="bottom-nav">
+  <a href="/web/test.html" class="bottom-nav__item bottom-nav__item--active">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="5"></circle>
+      <line x1="16" y1="16" x2="21" y2="21"></line>
+    </svg>
+    <span class="bottom-nav__label">Playground</span>
+  </a>
+  <a href="/web/api.html" class="bottom-nav__item">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="5" y="3" width="14" height="18" rx="2" ry="2"></rect>
+      <line x1="8" y1="8" x2="16" y2="8"></line>
+      <line x1="8" y1="12" x2="16" y2="12"></line>
+      <line x1="8" y1="16" x2="13" y2="16"></line>
+    </svg>
+    <span class="bottom-nav__label">API Docs</span>
+  </a>
+</div>
 </body>
 </html>

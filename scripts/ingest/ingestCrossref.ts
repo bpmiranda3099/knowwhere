@@ -59,19 +59,17 @@ async function upsert(items: CrossrefItem[]) {
 
       await client.query(
         `
-        INSERT INTO papers (id, title, abstract, authors, venue, venue_id, year, doi, url, subjects, source, source_id, language_code, license, embedding, tsv)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'crossref', $11, $12, $13, $14::vector,
+        INSERT INTO papers (id, title, abstract, authors, venue_id, year, doi, url, subjects, source_id, language_code, license, embedding, tsv)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::vector,
           to_tsvector('english', coalesce($2,'') || ' ' || coalesce($3,'')))
         ON CONFLICT (id) DO UPDATE SET
           title = EXCLUDED.title,
           abstract = EXCLUDED.abstract,
           authors = EXCLUDED.authors,
-          venue = EXCLUDED.venue,
           venue_id = EXCLUDED.venue_id,
           year = EXCLUDED.year,
           url = EXCLUDED.url,
           subjects = EXCLUDED.subjects,
-          source = EXCLUDED.source,
           source_id = EXCLUDED.source_id,
           language_code = EXCLUDED.language_code,
           license = EXCLUDED.license,
@@ -83,7 +81,6 @@ async function upsert(items: CrossrefItem[]) {
           title,
           abstract || content,
           authors,
-          venue,
           venueId,
           year,
           item.DOI ?? null,

@@ -61,24 +61,22 @@ async function upsertWork(work: CrossrefWork, sourceId: number) {
 
     await client.query(
       `
-      INSERT INTO papers (id, title, abstract, authors, venue, venue_id, year, doi, url, subjects, source, source_id, embedding, tsv)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'crossref', $11, $12::vector,
+      INSERT INTO papers (id, title, abstract, authors, venue_id, year, doi, url, subjects, source_id, embedding, tsv)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::vector,
         to_tsvector('english', coalesce($2,'') || ' ' || coalesce($3,'')))
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         abstract = EXCLUDED.abstract,
         authors = EXCLUDED.authors,
-        venue = EXCLUDED.venue,
         venue_id = EXCLUDED.venue_id,
         year = EXCLUDED.year,
         url = EXCLUDED.url,
         subjects = EXCLUDED.subjects,
-        source = EXCLUDED.source,
         source_id = EXCLUDED.source_id,
         embedding = EXCLUDED.embedding,
         tsv = EXCLUDED.tsv;
       `,
-      [id, title, abstract || content, authors, venue, venueId, year, work.DOI ?? null, work.URL ?? null, subjects, sourceId, embeddingLiteral]
+      [id, title, abstract || content, authors, venueId, year, work.DOI ?? null, work.URL ?? null, subjects, sourceId, embeddingLiteral]
     );
 
     const chunks = chunkText(content || title, INGEST_DEFAULTS.chunkWords, INGEST_DEFAULTS.chunkOverlap);

@@ -2,7 +2,8 @@ FROM nginx:1.27-alpine
 
 WORKDIR /usr/share/nginx/html
 
-# Serve the static API docs under /web
+# Serve the static site at both / and /web
+COPY web /usr/share/nginx/html
 COPY web /usr/share/nginx/html/web
 
 EXPOSE 80

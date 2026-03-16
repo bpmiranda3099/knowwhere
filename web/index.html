@@ -19,17 +19,20 @@
 <body class="antialiased selection:bg-red-500 selection:text-white">
 
     <!-- Navigation -->
-    <nav class="w-full py-6 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto">
+    <nav id="main-nav" class="w-full py-6 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto">
         <div class="flex items-center gap-2">
             <!-- Logo Fallback -->
-            <img src="/images/logo.png" alt="KnowWhere Logo" class="h-12 w-auto object-contain">
+            <a href="/web/index.html">
+              <img src="/images/logo.png" alt="KnowWhere Logo" class="h-12 w-auto object-contain">
+            </a>
         </div>
         <div class="hidden md:flex gap-8 items-center font-medium">
-            <a href="/api.html" class="hover:text-[var(--color-header-small)] transition-colors">API</a>
+            <a href="/web/api.html" class="hover:text-[var(--color-header-small)] transition-colors">API</a>
+            <a href="http://localhost:8080/web/test.html" class="hover:text-[var(--color-header-small)] transition-colors">Playground</a>
             <a href="#features" class="hover:text-[var(--color-header-small)] transition-colors">Features</a>
             <a href="#about" class="hover:text-[var(--color-header-small)] transition-colors">About</a>
             <a href="#contact" class="hover:text-[var(--color-header-small)] transition-colors">Contact</a>
-            <button class="btn-main px-6 py-2 rounded-full font-bold text-sm">Get Started</button>
+            <a id="nav-get-started" href="/web/api.html" class="btn-main px-6 py-2 rounded-full font-bold text-sm flex items-center justify-center">Get Started</a>
         </div>
         <!-- Mobile Menu Button -->
         <button class="md:hidden text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
@@ -40,7 +43,8 @@
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden md:hidden px-6 py-4 bg-[#151516] border-b border-gray-800">
         <div class="flex flex-col gap-4">
-            <a href="/api.html" class="block py-2">API</a>
+            <a href="/web/api.html" class="block py-2">API</a>
+            <a href="/web/test.html" class="block py-2">Playground</a>
             <a href="#features" class="block py-2">Features</a>
             <a href="#about" class="block py-2">About</a>
             <a href="#contact" class="block py-2">Contact</a>
@@ -59,15 +63,16 @@
                 Stop guessing keywords. Bridge the gap between your ideas and the resources you need with our intelligent, context-based search system.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
-                <button id="get-started-btn" class="btn-main px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#7000bd] hover:text-white transition-all">
-                    Start Searching <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                </button>
-                <button class="btn-outline px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#8500de] hover:border-[#8500de] hover:text-white transition-all">
-                    <i data-lucide="play-circle" class="w-5 h-5"></i> How It Works
-                </button>
+                <a id="get-started-btn" href="/web/api.html" class="btn-main px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#7000bd] hover:text-white transition-all">
+                    Get Started <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </a>
             </div>
-        </div>
+    </div>
         
+        <!-- Lottie animation above the decorative purple circle -->
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
+        <dotlottie-wc src="https://lottie.host/a1d2af7f-1c82-468d-b4da-4f16e97ac1e5/QU61mTXL4j.lottie" class="lottie-topper hidden lg:block" style="width: 420px;height: 420px" autoplay loop></dotlottie-wc>
+
         <!-- Optional Decorative Element -->
         <div class="absolute top-20 right-0 -z-10 opacity-20 hidden lg:block">
             <svg width="600" height="600" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -112,14 +117,6 @@
                     <p class="text-gray-600">Unlike standard chatbots, we only retrieve knowledge from actual academic files. No made-up facts, just grounded research.</p>
                 </div>
 
-                <!-- Card 6 -->
-                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow bg-white group" style="--delay: 0.3s;">
-                    <div class="w-14 h-14 rounded-xl bg-indigo-100 flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition-colors">
-                        <i data-lucide="globe" class="w-8 h-8 text-indigo-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <h4 class="text-xl font-bold mb-3">Easy Installation</h4>
-                    <p class="text-gray-600">Access the full power of the system directly through easy-installer and simple API configurations. Skip complex setup.</p>
-                </div>
             </div>
         </div>
     </section>
@@ -213,28 +210,28 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                 <div class="flex flex-col items-center text-center gap-3">
-                    <img src="https://via.placeholder.com/200x200.png?text=Portrait" alt="Brandon Miranda" class="w-40 h-40 rounded-full object-cover shadow-lg">
+                    <img src="/images/brandon.jpg" alt="Brandon Miranda" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
                         <p class="text-xl font-bold text-gray-900">Brandon Miranda</p>
                         <p class="text-gray-600">Project Manager / Backend Developer</p>
                     </div>
                 </div>
                 <div class="flex flex-col items-center text-center gap-3">
-                    <img src="https://via.placeholder.com/200x200.png?text=Portrait" alt="Alyssa Mae Abac" class="w-40 h-40 rounded-full object-cover shadow-lg">
+                    <img src="/images/alyssa.jpg" alt="Alyssa Mae Abac" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
                         <p class="text-xl font-bold text-gray-900">Alyssa Mae Abac</p>
                         <p class="text-gray-600">Documenter / Frontend Developer</p>
                     </div>
                 </div>
                 <div class="flex flex-col items-center text-center gap-3">
-                    <img src="https://via.placeholder.com/200x200.png?text=Portrait" alt="Mark Angelo XYZ Fabian" class="w-40 h-40 rounded-full object-cover shadow-lg">
+                    <img src="/images/angelo.jpg" alt="Mark Angelo XYZ Fabian" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
                         <p class="text-xl font-bold text-gray-900">Mark Angelo XYZ Fabian</p>
                         <p class="text-gray-600">Quality Control / Assurance Officer</p>
                     </div>
                 </div>
                 <div class="flex flex-col items-center text-center gap-3">
-                    <img src="https://via.placeholder.com/200x200.png?text=Portrait" alt="Alexander Asinas" class="w-40 h-40 rounded-full object-cover shadow-lg">
+                    <img src="/images/alex.png" alt="Alexander Asinas" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
                         <p class="text-xl font-bold text-gray-900">Alexander Asinas</p>
                         <p class="text-gray-600">Public Relations Officer</p>
@@ -245,10 +242,6 @@
     </section>
 
     <script>
-      const startLogin = (next = "/api.html") => {
-        window.location.href = `/api/auth/start?next=${encodeURIComponent(next)}`;
-      };
-
       document.addEventListener('DOMContentLoaded', () => {
         const slides = Array.from(document.querySelectorAll('.about-slide'));
         if (slides.length) {
@@ -266,9 +259,20 @@
         }
 
         const getStarted = document.getElementById('get-started-btn');
-        if (getStarted) {
-          getStarted.addEventListener('click', () => startLogin("/api.html"));
-        }
+        const navGetStarted = document.getElementById('nav-get-started');
+        const nav = document.getElementById('main-nav');
+
+        // Stick navbar + swap CTA color on scroll
+        const handleScroll = () => {
+          const scrolled = window.scrollY > 0;
+          if (nav) {
+            nav.classList.toggle('navbar-scrolled', scrolled);
+          }
+          // CTA styling can be adjusted on scroll if desired.
+        };
+
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
       });
     </script>
 

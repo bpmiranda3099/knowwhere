@@ -76,5 +76,27 @@ services:
       retries: 5
       start_period: 30s
 
+  migrate:
+    image: ${DB_IMAGE:-pgvector/pgvector:pg16}
+    container_name: knowwhere-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${DB_SUPERPASS:-knowwhere_superadmin_pass}
+    volumes:
+      - ./db/schema.sql:/schema.sql:ro
+    entrypoint: ["sh", "-c", "psql -h db -U ${DB_SUPERUSER:-knowwhere_superadmin} -d knowwhere -f /schema.sql || true"]
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: knowwhere-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
 volumes:
   db_data:

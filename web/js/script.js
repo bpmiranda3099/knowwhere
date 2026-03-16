@@ -5,8 +5,12 @@ var elements = [];
 document.addEventListener('click', function (e) {
     var li = e.target.closest('.scroll-to-link');
     if (li) {
-        e.preventDefault();
         var target = li.dataset.target;
+        // Special-case playground: let the normal link navigation happen
+        if (target === 'content-playground') {
+            return; // do not preventDefault; follow href
+        }
+        e.preventDefault();
         var elTarget = document.getElementById(target);
         if (elTarget) elTarget.scrollIntoView({ behavior: 'smooth' });
         var elems = document.querySelectorAll('.content-menu ul li');

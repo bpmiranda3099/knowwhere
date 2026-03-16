@@ -24,6 +24,19 @@ body {
     overflow-x: hidden;
 }
 
+/* Sticky navbar */
+#main-nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
+}
+#main-nav.navbar-scrolled {
+    background: rgba(21, 21, 22, 0.92);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+}
+
 /* --- Headers --- */
 h1, h2, h3 {
     color: var(--color-header-large);
@@ -43,6 +56,24 @@ h4, h5, h6 {
 .btn-main:hover {
     background-color: var(--color-secondary);
     transform: translateY(-2px);
+}
+
+.btn-main.btn-alert {
+    background-color: var(--color-text-highlight);
+}
+.btn-main.btn-alert:hover {
+    background-color: #e24343;
+}
+
+.lottie-topper {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 420px;
+    height: 420px;
+    transform: translateY(-50%);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .btn-outline {
