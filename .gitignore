@@ -60,6 +60,3 @@ models
 # Documentation
 .vercel
 
-# Tests
-tests/ir-metrics/results
-

@@ -11,7 +11,6 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/api/index.js",
     "lint": "echo \"add eslint if needed\"",
-    "eval:phase2": "tsx scripts/eval/phase2.ts",
     "backfill:tsv": "tsx scripts/backfill/backfillTsv.ts",
     "backfill:embeddings": "tsx scripts/backfill/backfillEmbeddings.ts",
     "ingest:arxiv": "tsx scripts/ingest/ingestArxiv.ts",

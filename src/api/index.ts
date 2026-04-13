@@ -8,7 +8,6 @@ import { registerHealthRoutes } from './routes/health';
 import { registerIngestRoutes } from './routes/ingest';
 import { registerStatsRoutes } from './routes/stats';
 import { registerLogsRoutes } from './routes/logs';
-import { registerEvaluateRoutes } from './routes/evaluate';
 import { registerEmbedRoutes } from './routes/embed';
 import { registerRerankRoutes } from './routes/rerank';
 import { apiKeyGuard } from './hooks/auth';
@@ -40,7 +39,6 @@ export async function buildServer() {
   await registerStatsRoutes(app);
   await registerLogsRoutes(app);
   await registerIngestRoutes(app);
-  await registerEvaluateRoutes(app);
   await registerEmbedRoutes(app);
   await registerRerankRoutes(app);
   await registerSearchRoutes(app);
