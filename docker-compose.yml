@@ -60,10 +60,24 @@ services:
       # Use the DB superuser by default so local/dev stacks work without separately creating an admin role.
       DATABASE_URL: postgres://${DB_SUPERUSER:-knowwhere_superadmin}:${DB_SUPERPASS:-knowwhere_superadmin_pass}@db:5432/knowwhere
       EMBEDDING_ENDPOINT: http://embedding:8081/embed
-      EMBEDDING_MODEL: BAAI/bge-base-en-v1.5
+      # Must match the embedding container output size (schema papers.embedding is 384).
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
       RERANK_ENDPOINT: http://reranker:8082/rerank
+      # Off by default in Compose so the playground shows SQL hits; set RERANK_ABSTAIN=1 for strict relevance gating.
+      RERANK_ABSTAIN: ${RERANK_ABSTAIN:-0}
       RATE_LIMIT_MAX: 100
       RATE_LIMIT_WINDOW: 60000
+      # When running behind ngrok / reverse proxies, trust X-Forwarded-* for client IP.
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      # Optionally restrict CORS when exposing publicly (comma-separated origins).
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      CONTACT_TO: ${CONTACT_TO:-knowwheretosearch@gmail.com}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     ports:
       - "3000:3000"
     depends_on:

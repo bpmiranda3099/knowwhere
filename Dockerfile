@@ -17,6 +17,7 @@ COPY tsconfig.json ./
 COPY src ./src
 COPY scripts ./scripts
 COPY docs ./docs
+COPY web/images/logo.png ./assets/logo.png
 
 RUN npm run build
 

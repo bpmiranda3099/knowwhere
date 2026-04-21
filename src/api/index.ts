@@ -10,11 +10,13 @@ import { registerStatsRoutes } from './routes/stats';
 import { registerLogsRoutes } from './routes/logs';
 import { registerEmbedRoutes } from './routes/embed';
 import { registerRerankRoutes } from './routes/rerank';
+import { registerContactRoutes } from './routes/contact';
 import { apiKeyGuard } from './hooks/auth';
 import { RATE_LIMIT_ALLOWLIST } from '../config/system/constants';
 
 export async function buildServer() {
   const app = fastify({
+    trustProxy: config.TRUST_PROXY,
     logger: {
       level: 'info',
       transport: config.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
@@ -41,6 +43,7 @@ export async function buildServer() {
   await registerIngestRoutes(app);
   await registerEmbedRoutes(app);
   await registerRerankRoutes(app);
+  await registerContactRoutes(app);
   await registerSearchRoutes(app);
 
   return app;

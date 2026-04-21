@@ -11,9 +11,9 @@ describe('buildServer (unit)', () => {
     const registerStatsRoutes = vi.fn(async () => {});
     const registerLogsRoutes = vi.fn(async () => {});
     const registerIngestRoutes = vi.fn(async () => {});
-    const registerEvaluateRoutes = vi.fn(async () => {});
     const registerEmbedRoutes = vi.fn(async () => {});
     const registerRerankRoutes = vi.fn(async () => {});
+    const registerContactRoutes = vi.fn(async () => {});
     const registerSearchRoutes = vi.fn(async () => {});
 
     const app = {
@@ -37,9 +37,9 @@ describe('buildServer (unit)', () => {
     vi.doMock('../../../src/api/routes/stats', () => ({ registerStatsRoutes }));
     vi.doMock('../../../src/api/routes/logs', () => ({ registerLogsRoutes }));
     vi.doMock('../../../src/api/routes/ingest', () => ({ registerIngestRoutes }));
-    vi.doMock('../../../src/api/routes/evaluate', () => ({ registerEvaluateRoutes }));
     vi.doMock('../../../src/api/routes/embed', () => ({ registerEmbedRoutes }));
     vi.doMock('../../../src/api/routes/rerank', () => ({ registerRerankRoutes }));
+    vi.doMock('../../../src/api/routes/contact', () => ({ registerContactRoutes }));
     vi.doMock('../../../src/api/routes/search', () => ({ registerSearchRoutes }));
     vi.doMock('../../../src/api/hooks/auth', () => ({ apiKeyGuard: vi.fn() }));
 

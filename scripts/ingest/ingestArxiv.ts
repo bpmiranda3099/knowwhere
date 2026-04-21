@@ -5,6 +5,7 @@ import { fetchWithRetry } from '../utils/retry';
 import { CLI_DEFAULTS, SOURCES, USER_AGENT, INGEST_DEFAULTS, INGEST_RATE_LIMIT } from '../../src/config/ingest/constants';
 import { z } from 'zod';
 import { pause } from '../utils/rateLimit';
+import { IngestRunOptions, IngestRunResult } from './shared';
 import {
   ensureAuthor,
   ensureSource,
@@ -13,6 +14,17 @@ import {
   linkPaperAuthor,
   linkPaperSubject
 } from '../utils/ingestDb';
+
+function shouldLogItems(): boolean {
+  const v = process.env.INGEST_LOG_ITEMS;
+  return v === '1' || v === 'true';
+}
+
+function progressEvery(): number {
+  const raw = process.env.INGEST_PROGRESS_EVERY;
+  const n = raw ? Number(raw) : 10;
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 10;
+}
 
 // Minimal arXiv ingestion example (uses export API via HTTP).
 // For production, add retries, backoff, and richer field mapping.
@@ -78,7 +90,39 @@ async function upsertEntries(entries: ArxivEntry[]) {
   const client = await getClient();
   try {
     const sourceId = await ensureSource(client, 'arxiv', 'http://export.arxiv.org');
+    const idsToCheck = Array.from(new Set(entries.map((e) => e.id).filter(Boolean)));
+    const doisToCheck = Array.from(new Set(entries.map((e) => e.doi).filter(Boolean))) as string[];
+    const existingIds = new Set<string>();
+    const existingDois = new Set<string>();
+
+    if (idsToCheck.length || doisToCheck.length) {
+      const res = await client.query<{ id: string; doi: string | null }>(
+        `
+        SELECT id, doi
+        FROM papers
+        WHERE (cardinality($1::text[]) > 0 AND id = ANY($1::text[]))
+           OR (cardinality($2::text[]) > 0 AND doi IS NOT NULL AND doi = ANY($2::text[]));
+        `,
+        [idsToCheck, doisToCheck]
+      );
+      for (const row of res.rows) {
+        if (row.id) existingIds.add(row.id);
+        if (row.doi) existingDois.add(row.doi);
+      }
+    }
+
+    let processed = 0;
+    const every = progressEvery();
+    // eslint-disable-next-line no-console
+    console.log('[ingest][arxiv] upserting', { totalFetched: entries.length, progressEvery: every });
     for (const entry of entries) {
+      if (existingIds.has(entry.id) || (entry.doi && existingDois.has(entry.doi))) {
+        continue;
+      }
+      if (shouldLogItems()) {
+        // eslint-disable-next-line no-console
+        console.log('[ingest][arxiv]', { id: entry.id, title: entry.title });
+      }
       await pause(INGEST_RATE_LIMIT.perRequestDelayMs);
       const venueId = await ensureVenue(client, null);
       const embedding = await embedText(`${entry.title}\n${entry.summary}`);
@@ -145,10 +189,30 @@ async function upsertEntries(entries: ArxivEntry[]) {
         const authorId = await ensureAuthor(client, authorName);
         await linkPaperAuthor(client, entry.id, authorId, idx + 1);
       }
+
+      processed += 1;
+      if (processed % every === 0) {
+        // eslint-disable-next-line no-console
+        console.log('[ingest][arxiv] progress', { processed, totalFetched: entries.length });
+      }
     }
+
+    return processed;
   } finally {
     client.release();
   }
+}
+
+export async function runArxivIngest(options: IngestRunOptions): Promise<IngestRunResult> {
+  await pause(options.pacingMs);
+  const entries = await fetchArxiv(options.query, options.quantity);
+  const processed = await upsertEntries(entries);
+
+  return {
+    fetched: entries.length,
+    processed,
+    source: 'arxiv'
+  };
 }
 
 async function main() {
@@ -157,17 +221,21 @@ async function main() {
     maxResults: z.coerce.number().int().positive().max(2000).default(CLI_DEFAULTS.arxivMaxResults)
   });
   const args = argsSchema.parse({ query: process.argv[2], maxResults: process.argv[3] });
-
-  const entries = await fetchArxiv(args.query, args.maxResults);
-  await upsertEntries(entries);
+  await runArxivIngest({
+    query: args.query,
+    quantity: args.maxResults,
+    pacingMs: INGEST_RATE_LIMIT.sources.arxiv.requestDelayMs
+  });
 }
 
-main()
-  .catch((err) => {
-    // eslint-disable-next-line no-console
-    console.error('ingestArxiv failed', err);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await closePool();
-  });
+if (require.main === module) {
+  main()
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('ingestArxiv failed', err);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await closePool();
+    });
+}

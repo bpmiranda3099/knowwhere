@@ -9,8 +9,15 @@ export async function rerank(
   query: string,
   candidates: string[]
 ): Promise<number[] | null> {
+  // Allow bypass in automated tests where the reranker service isn't started.
   const rerankDisabled = process.env.SKIP_RERANK === '1' || process.env.SKIP_RERANK === 'true';
-  if (!config.RERANK_ENDPOINT || rerankDisabled || candidates.length === 0) {
+  if (config.NODE_ENV === 'test' && rerankDisabled) {
+    return null;
+  }
+  if (!config.RERANK_ENDPOINT) {
+    throw new Error('RERANK_ENDPOINT is required');
+  }
+  if (candidates.length === 0) {
     return null;
   }
 
@@ -26,9 +33,7 @@ export async function rerank(
 
     if (!res.ok) {
       const text = await res.text();
-      // eslint-disable-next-line no-console
-      console.warn(`rerank failed (${res.status}): ${text.slice(0, 200)}`);
-      return null;
+      throw new Error(`rerank failed (${res.status}): ${text.slice(0, 200)}`);
     }
 
     const data = (await res.json()) as RerankResponse;
@@ -37,9 +42,7 @@ export async function rerank(
     }
     return null;
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('rerank error', (err as Error).message);
-    return null;
+    throw new Error(`rerank error: ${(err as Error).message}`);
   } finally {
     clearTimeout(timeout);
   }

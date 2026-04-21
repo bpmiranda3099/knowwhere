@@ -57,12 +57,5 @@ describe('route registrars (unit)', () => {
     await registerIngestRoutes(app);
     expect(app.post).toHaveBeenCalledWith('/ingest', expect.anything(), expect.any(Function));
   });
-
-  it('registerEvaluateRoutes registers /evaluate', async () => {
-    const app = fakeApp();
-    const { registerEvaluateRoutes } = await import('../../../../src/api/routes/evaluate');
-    await registerEvaluateRoutes(app);
-    expect(app.post).toHaveBeenCalledWith('/evaluate', expect.anything(), expect.any(Function));
-  });
 });
 

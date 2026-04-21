@@ -7,18 +7,18 @@ describe('rerank (unit)', () => {
     delete process.env.SKIP_RERANK;
   });
 
-  it('returns null when endpoint is unset', async () => {
+  it('throws when endpoint is unset', async () => {
     vi.doMock('../../../src/config/env', () => ({
-      config: { RERANK_ENDPOINT: undefined }
+      config: { NODE_ENV: 'production', RERANK_ENDPOINT: undefined }
     }));
     const { rerank } = await import('../../../src/services/rerankService');
-    await expect(rerank('q', ['a'])).resolves.toBeNull();
+    await expect(rerank('q', ['a'])).rejects.toThrow(/RERANK_ENDPOINT is required/);
   });
 
   it('returns null when disabled via env', async () => {
     process.env.SKIP_RERANK = '1';
     vi.doMock('../../../src/config/env', () => ({
-      config: { RERANK_ENDPOINT: 'http://rerank' }
+      config: { NODE_ENV: 'test', RERANK_ENDPOINT: 'http://rerank' }
     }));
     const { rerank } = await import('../../../src/services/rerankService');
     await expect(rerank('q', ['a'])).resolves.toBeNull();
@@ -26,7 +26,7 @@ describe('rerank (unit)', () => {
 
   it('returns null when candidates empty', async () => {
     vi.doMock('../../../src/config/env', () => ({
-      config: { RERANK_ENDPOINT: 'http://rerank' }
+      config: { NODE_ENV: 'production', RERANK_ENDPOINT: 'http://rerank' }
     }));
     const { rerank } = await import('../../../src/services/rerankService');
     await expect(rerank('q', [])).resolves.toBeNull();
@@ -34,7 +34,7 @@ describe('rerank (unit)', () => {
 
   it('returns scores when service returns ok json', async () => {
     vi.doMock('../../../src/config/env', () => ({
-      config: { RERANK_ENDPOINT: 'http://rerank' }
+      config: { NODE_ENV: 'production', RERANK_ENDPOINT: 'http://rerank' }
     }));
     // @ts-expect-error test override
     global.fetch = vi.fn(async () => ({
@@ -46,9 +46,9 @@ describe('rerank (unit)', () => {
     await expect(rerank('q', ['a', 'b'])).resolves.toEqual([0.2, 0.1]);
   });
 
-  it('returns null on non-ok response', async () => {
+  it('throws on non-ok response', async () => {
     vi.doMock('../../../src/config/env', () => ({
-      config: { RERANK_ENDPOINT: 'http://rerank' }
+      config: { NODE_ENV: 'production', RERANK_ENDPOINT: 'http://rerank' }
     }));
     // @ts-expect-error test override
     global.fetch = vi.fn(async () => ({
@@ -58,7 +58,7 @@ describe('rerank (unit)', () => {
     }));
 
     const { rerank } = await import('../../../src/services/rerankService');
-    await expect(rerank('q', ['a'])).resolves.toBeNull();
+    await expect(rerank('q', ['a'])).rejects.toThrow(/rerank failed/);
   });
 });
 

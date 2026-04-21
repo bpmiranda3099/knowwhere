@@ -27,5 +27,19 @@ export const CLI_DEFAULTS = {
 };
 
 export const INGEST_RATE_LIMIT = {
-  perRequestDelayMs: 200
+  perRequestDelayMs: 200,
+  sources: {
+    arxiv: {
+      requestDelayMs: 3000,
+      description: '1 request every 3.0s'
+    },
+    crossref: {
+      requestDelayMs: 1000,
+      description: '1 request every 1.0s'
+    },
+    openalex: {
+      requestDelayMs: 100,
+      description: '1 request every 0.1s'
+    }
+  }
 };

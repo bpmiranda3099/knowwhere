@@ -16,8 +16,8 @@ export interface SearchRequest {
   level?: Level;
   filters?: SearchFilters;
   /**
-   * Optional override for reranking. When omitted, semantic/hybrid will rerank if enabled.
-   * When false, semantic/hybrid will skip the reranker even if configured.
+   * Deprecated: reranking is always applied in normal operation.
+   * In automated tests, reranking may be bypassed via SKIP_RERANK.
    */
   rerank?: boolean;
 }

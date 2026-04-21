@@ -2,57 +2,22 @@
 <html class="no-js" lang="en">
 <head>
   <meta charset="utf-8">
-  <title>KnowWhere Search Playground</title>
+  <title>KnowWhere Search</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Favicon is injected via components/favicon.html -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.5/pagination.css">
   <link rel="stylesheet" href="css/style.css" media="all">
 </head>
-<body>
+<body class="content-page--search-empty">
+
 <script>
-  // Load sidebar and GitHub corner components from `components/` and insert into the page.
+  // Load GitHub corner + favicon components from `components/` and insert into the page.
   document.addEventListener('DOMContentLoaded', async function () {
     try {
-      const [sidebarRes, cornerRes, faviconRes] = await Promise.all([
-        fetch('components/sidebar.html'),
+      const [cornerRes, faviconRes] = await Promise.all([
         fetch('components/github-corner.html'),
         fetch('components/favicon.html')
       ]);
-
-      if (sidebarRes && sidebarRes.ok) {
-        const sidebarText = await sidebarRes.text();
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = sidebarText;
-        const node = wrapper.firstElementChild;
-        if (node) document.body.insertBefore(node, document.body.firstChild);
-      }
-
-      // Adjust sidebar links: keep Playground on this page, send others to api.html anchors
-      if (sidebarRes && sidebarRes.ok) {
-        try {
-          const inserted = document.querySelector('.left-menu');
-          if (inserted) {
-            const items = inserted.querySelectorAll('.scroll-to-link');
-            items.forEach(li => {
-              const target = li.getAttribute('data-target');
-              const a = li.querySelector('a');
-              if (!a || !target) return;
-              if (target === 'content-playground') {
-                a.setAttribute('href', '/web/test.html');
-              } else {
-                a.setAttribute('href', '/web/api.html#' + target);
-              }
-            });
-            // Highlight Playground as active on this page
-            const playgroundItem = inserted.querySelector(".scroll-to-link[data-target='content-playground']");
-            if (playgroundItem) {
-              inserted.querySelectorAll('.scroll-to-link').forEach(liEl => liEl.classList.remove('active'));
-              playgroundItem.classList.add('active');
-            }
-          }
-        } catch (e) {
-          // non-fatal
-        }
-      }
 
       if (cornerRes && cornerRes.ok) {
         const cornerText = await cornerRes.text();
@@ -76,81 +41,57 @@
     }
   });
 </script>
-<div class="content-page">
-  <div class="content-code"></div>
-  <div class="content">
-    <div class="overflow-hidden content-section" id="content-playground">
-      <h1 class="text-center">Search papers</h1>
-      <input id="api-base" type="hidden" value="http://localhost:3000">
-      <input id="api-key" type="hidden" value="">
-      <div class="card search-card" style="max-width: 880px; margin: 0 auto;">
-        <div class="card__content">
-          <div class="search-row">
-            <input id="query" type="text" class="search-input" placeholder="Search for papers..." value="graph neural networks">
-            <div class="search-actions">
-              <button id="search-btn" class="btn btn-primary">Search</button>
-              <button id="toggle-filters" class="btn btn-ghost">Filters</button>
-            </div>
-          </div>
-          <div id="filters-panel" class="filters-panel hidden">
-            <div class="form-inline single-line row-filters">
-              <div class="form-group">
-                <label>Year from</label>
-                <input id="year-from" type="number" placeholder="e.g. 2020">
-              </div>
-              <div class="form-group">
-                <label>Year to</label>
-                <input id="year-to" type="number" placeholder="e.g. 2024">
-              </div>
-              <div class="form-group">
-                <label>Subject</label>
-                <input id="subject" type="text" placeholder="cs.LG">
-              </div>
-              <div class="form-group">
-                <label>Source</label>
-                <input id="source" type="text" placeholder="arxiv">
-              </div>
-            </div>
-          </div>
-          <div class="form-actions">
-            <span id="status" class="status"></span>
-          </div>
+
+<div class="overflow-hidden content-section" id="content-playground">
+  <div class="search-empty-hero">
+    <a href="/web/index.html" aria-label="KnowWhere home" title="KnowWhere">
+      <img class="search-empty-hero__logo" src="images/logo.png" alt="KnowWhere">
+    </a>
+  </div>
+  <input id="api-base" type="hidden" value="/api">
+  <input id="api-key" type="hidden" value="">
+  <div class="card search-card">
+    <div class="card__content">
+      <div class="search-row">
+        <a href="/web/index.html" aria-label="KnowWhere home" title="KnowWhere">
+          <img class="search-top-logo" src="images/logo.png" alt="KnowWhere">
+        </a>
+        <input id="query" type="text" class="search-input" placeholder="Search for papers..." value="graph neural networks">
+        <div class="search-actions">
+          <button id="search-btn" class="btn btn-primary">Search</button>
         </div>
       </div>
-    </div>
-
-    <div class="overflow-hidden content-section">
-      <div class="results-header">
-        <div id="pagination-top" class="pagination-top"></div>
+      <div class="form-actions">
+        <span id="status" class="status"></span>
       </div>
-      <div id="results-summary" class="text-muted small" style="display:none;"></div>
-      <div id="results-list" class="results-grid"></div>
-      <div id="pagination" class="pagination-bottom"></div>
     </div>
   </div>
-  <div class="content-code"></div>
+</div>
+
+<div class="overflow-hidden content-section results-columns">
+  <section class="results-column results-column--lex" aria-label="Lexical results">
+    <div class="results-column__title">Standard Search</div>
+    <div class="results-header">
+      <div id="pagination-top-lex" class="pagination-top"></div>
+    </div>
+    <div id="results-summary-lex" class="text-muted small" style="display:none;"></div>
+    <div id="results-list-lex" class="results-grid"></div>
+    <div id="pagination-lex" class="pagination-bottom"></div>
+  </section>
+
+  <section class="results-column" aria-label="Hybrid results">
+    <div class="results-column__title">KnowWhere Search</div>
+    <div class="results-header">
+      <div id="pagination-top-hybrid" class="pagination-top"></div>
+    </div>
+    <div id="results-summary-hybrid" class="text-muted small" style="display:none;"></div>
+    <div id="results-list-hybrid" class="results-grid"></div>
+    <div id="pagination-hybrid" class="pagination-bottom"></div>
+  </section>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.5/pagination.min.js"></script>
 <script src="js/test.js"></script>
-<div class="bottom-nav">
-  <a href="/web/test.html" class="bottom-nav__item bottom-nav__item--active">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="5"></circle>
-      <line x1="16" y1="16" x2="21" y2="21"></line>
-    </svg>
-    <span class="bottom-nav__label">Playground</span>
-  </a>
-  <a href="/web/api.html" class="bottom-nav__item">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="5" y="3" width="14" height="18" rx="2" ry="2"></rect>
-      <line x1="8" y1="8" x2="16" y2="8"></line>
-      <line x1="8" y1="12" x2="16" y2="12"></line>
-      <line x1="8" y1="16" x2="13" y2="16"></line>
-    </svg>
-    <span class="bottom-nav__label">API Docs</span>
-  </a>
-</div>
 </body>
 </html>

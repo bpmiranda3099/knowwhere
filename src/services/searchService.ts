@@ -5,6 +5,7 @@ import { Level, Mode, SearchFilters, SearchRequest, SearchResult } from '../type
 import {
   SEARCH_LIMITS,
   SEARCH_CANDIDATES,
+  SEARCH_QUALITY,
   SEARCH_WEIGHTS,
   SNIPPET_LENGTH
 } from '../config/search/constants';
@@ -66,6 +67,86 @@ interface ChunkRow extends PaperRow {
   chunk_id: number | null;
 }
 
+function retrievalStrength(r: SearchResult): number {
+  const v = r.hybridScore ?? r.lexScore ?? r.semScore;
+  return v != null && Number.isFinite(Number(v)) ? Number(v) : Number.NEGATIVE_INFINITY;
+}
+
+function normalizeDedupeTitle(title: string | null | undefined): string {
+  if (!title) return '';
+  return title.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/**
+ * Drop duplicate catalog rows: same DOI, then same normalized title (keep best retrieval score).
+ * Preserves first-seen order of surviving keys.
+ */
+function dedupePaperSearchResults(results: SearchResult[]): SearchResult[] {
+  const mergeByKey = (rows: SearchResult[], keyFn: (row: SearchResult) => string): SearchResult[] => {
+    const keyOrder: string[] = [];
+    const best = new Map<string, SearchResult>();
+    for (const row of rows) {
+      const k = keyFn(row);
+      const prev = best.get(k);
+      if (!prev) {
+        keyOrder.push(k);
+        best.set(k, row);
+      } else if (retrievalStrength(row) > retrievalStrength(prev)) {
+        best.set(k, row);
+      }
+    }
+    return keyOrder.map((k) => best.get(k)!);
+  };
+
+  const doiKey = (row: SearchResult) => {
+    const d = row.doi?.trim().toLowerCase();
+    return d ? `doi:${d}` : `\0id:${row.id}`;
+  };
+  const titleKey = (row: SearchResult) => {
+    const t = normalizeDedupeTitle(row.title);
+    return t ? `title:${t}` : `\0id:${row.id}`;
+  };
+
+  return mergeByKey(mergeByKey(results, doiKey), titleKey);
+}
+
+function hasLexicalHint(r: SearchResult): boolean {
+  return r.lexScore != null && Number(r.lexScore) > 1e-6;
+}
+
+function isStubMetadata(r: SearchResult): boolean {
+  const title = (r.title ?? '').trim();
+  const abs = (r.abstract ?? '').trim();
+  if (!abs) return true;
+  if (abs.length < SEARCH_QUALITY.stubAbstractMaxLen) return true;
+  if (title && abs.toLowerCase() === title.toLowerCase()) return true;
+  return false;
+}
+
+/** Tweak fused hybrid scores before dedupe/rerank so substantive papers beat semantic-only stubs. */
+function hybridMetadataMultiplier(r: SearchResult): number {
+  const hasLex = hasLexicalHint(r);
+  const stub = isStubMetadata(r);
+  // Stub catalog rows stay penalized even when they lexically match generic query terms ("machine learning").
+  if (stub) {
+    return SEARCH_QUALITY.stubPenalty * SEARCH_QUALITY.semanticOnlyStubExtra;
+  }
+  if (hasLex) return SEARCH_QUALITY.lexicalSemanticBoost;
+  return 1;
+}
+
+function applyPaperRetrievalHeuristic(results: SearchResult[], mode: Mode): SearchResult[] {
+  if (mode !== 'hybrid' && mode !== 'semantic') return results;
+  const tweaked = results.map((row) => {
+    const raw = row.hybridScore;
+    if (raw == null || !Number.isFinite(Number(raw))) return row;
+    const mult = hybridMetadataMultiplier(row);
+    const next = Math.min(1, Math.max(0, Number(raw) * mult));
+    return { ...row, hybridScore: next };
+  });
+  return tweaked.sort((a, b) => (b.hybridScore ?? 0) - (a.hybridScore ?? 0));
+}
+
 export async function search(request: SearchRequest): Promise<SearchResult[]> {
   const limit = Math.min(request.limit ?? SEARCH_LIMITS.default, SEARCH_LIMITS.max);
   const mode: Mode = request.mode ?? 'hybrid';
@@ -86,7 +167,7 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
 
   const { rows } = await query<PaperRow | ChunkRow>(sql, values);
 
-  const baseResults: SearchResult[] = rows.map((row: PaperRow | ChunkRow) => ({
+  let baseResults: SearchResult[] = rows.map((row: PaperRow | ChunkRow) => ({
     id: row.id,
     title: row.title,
     abstract: row.abstract,
@@ -101,12 +182,19 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
     chunkId: 'chunk_id' in row ? row.chunk_id ?? undefined : undefined
   }));
 
-  // Optional rerank on top results, but keep full list.
-  const rerankAllowed = request.rerank ?? true;
+  if (level === 'paper') {
+    baseResults = applyPaperRetrievalHeuristic(baseResults, mode);
+    baseResults = dedupePaperSearchResults(baseResults);
+  }
+
+  // Always rerank in normal operation; tests may bypass via SKIP_RERANK.
   const rerankTop = Math.min(baseResults.length, 20);
-  const rerankCandidates = baseResults.slice(0, rerankTop);
+  const substantives = baseResults.filter((r) => !isStubMetadata(r));
+  const rerankCandidates =
+    substantives.length > 0 ? substantives.slice(0, rerankTop) : baseResults.slice(0, rerankTop);
+  const rerankCandidateIds = new Set(rerankCandidates.map((r) => r.id));
   const rerankScores =
-    rerankAllowed && (mode === 'hybrid' || mode === 'semantic') && rerankCandidates.length
+    rerankCandidates.length > 0
       ? await rerank(
           request.q,
           rerankCandidates.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')
@@ -118,8 +206,38 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
       result,
       score: rerankScores[idx] ?? 0
     }));
-    const reranked = scored.sort((a, b) => b.score - a.score).map(({ result }) => result);
-    const remainder = baseResults.slice(rerankTop);
+
+    // Final relevance gate: only return results that are actually about the query.
+    // This intentionally allows returning an empty list when confidence is low.
+    const gateEnabled = !(process.env.RERANK_ABSTAIN === '0' || process.env.RERANK_ABSTAIN === 'false');
+    const minTop =
+      process.env.RERANK_ABSTAIN_MIN_TOP !== undefined ? Number(process.env.RERANK_ABSTAIN_MIN_TOP) : 0.2;
+    const maxDrop =
+      process.env.RERANK_ABSTAIN_MAX_DROP !== undefined ? Number(process.env.RERANK_ABSTAIN_MAX_DROP) : 0.25;
+    const minGap =
+      process.env.RERANK_ABSTAIN_MIN_GAP !== undefined ? Number(process.env.RERANK_ABSTAIN_MIN_GAP) : 0.05;
+
+    const scoredSorted = scored.sort((a, b) => b.score - a.score);
+    const topScore = scoredSorted[0]?.score ?? -Infinity;
+    const secondScore = scoredSorted[1]?.score ?? -Infinity;
+    const gap = topScore - secondScore;
+
+    const reranked =
+      gateEnabled && Number.isFinite(topScore) && Number.isFinite(minTop) && topScore < minTop
+        ? []
+        : gateEnabled && Number.isFinite(gap) && Number.isFinite(minGap) && scoredSorted.length > 1 && gap < minGap
+          ? []
+          : gateEnabled && Number.isFinite(maxDrop)
+            ? scoredSorted.filter((s) => s.score >= topScore - maxDrop).map(({ result }) => result)
+            : scoredSorted.map(({ result }) => result);
+
+    if (gateEnabled && reranked.length === 0) {
+      // Long paraphrased queries often yield uniformly low rerank scores vs 240-char snippets;
+      // still return fusion-ranked candidates rather than an empty list (set RERANK_ABSTAIN=0 to skip gating).
+      const remainder = baseResults.filter((r) => !rerankCandidateIds.has(r.id));
+      return [...rerankCandidates, ...remainder];
+    }
+    const remainder = baseResults.filter((r) => !rerankCandidateIds.has(r.id));
     return [...reranked, ...remainder];
   }
 

@@ -19,19 +19,7 @@ document.addEventListener('click', function (e) {
         return false;
     }
 
-    var btn = e.target.closest('#button-menu-mobile');
-    if (btn) {
-        e.preventDefault();
-        document.querySelector('html').classList.toggle('menu-opened');
-        return false;
-    }
-
-    var closer = e.target.closest('.left-menu .mobile-menu-closer');
-    if (closer) {
-        e.preventDefault();
-        document.querySelector('html').classList.remove('menu-opened');
-        return false;
-    }
+    // Mobile menu removed.
 });
 
 function debounce (func) {

@@ -41,6 +41,24 @@ export async function ensureAuthor(client: PoolClient, name: string, orcid?: str
   return inserted.rows[0].id;
 }
 
+export async function ensureLanguage(
+  client: PoolClient,
+  code?: string | null,
+  name?: string | null
+): Promise<string | null> {
+  const normalized = code?.trim();
+  if (!normalized) return null;
+  await client.query(
+    `
+    INSERT INTO languages (code, name)
+    VALUES ($1, $2)
+    ON CONFLICT (code) DO UPDATE SET name = COALESCE(EXCLUDED.name, languages.name)
+    `,
+    [normalized, name ?? null]
+  );
+  return normalized;
+}
+
 export async function linkPaperSubject(client: PoolClient, paperId: string, subjectId: number): Promise<void> {
   await client.query(
     'INSERT INTO paper_subjects (paper_id, subject_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',

@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KnowWhere - Semantic Academic Search</title>
-    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <title>KnowWhere</title>
+    <link rel="icon" type="image/png" href="/web/images/favicon.png">
+    <link rel="apple-touch-icon" href="/web/images/favicon.png">
+    <meta name="theme-color" content="#ffffff">
     
     <!-- Link to Custom CSS -->
     <link rel="stylesheet" href="/css/index-styles.css">
@@ -17,39 +19,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="antialiased selection:bg-red-500 selection:text-white">
-
     <!-- Navigation -->
     <nav id="main-nav" class="w-full py-6 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto">
         <div class="flex items-center gap-2">
-            <!-- Logo Fallback -->
-            <a href="/web/index.html">
-              <img src="/images/logo.png" alt="KnowWhere Logo" class="h-12 w-auto object-contain">
+            <a href="/web/index.html" aria-label="KnowWhere home">
+              <div class="flex items-center gap-3">
+                <img src="/web/images/logo.png" alt="KnowWhere" class="h-10 w-auto object-contain">
+              </div>
             </a>
         </div>
         <div class="hidden md:flex gap-8 items-center font-medium">
             <a href="/web/api.html" class="hover:text-[var(--color-header-small)] transition-colors">API</a>
-            <a href="http://localhost:8080/web/test.html" class="hover:text-[var(--color-header-small)] transition-colors">Playground</a>
             <a href="#features" class="hover:text-[var(--color-header-small)] transition-colors">Features</a>
             <a href="#about" class="hover:text-[var(--color-header-small)] transition-colors">About</a>
             <a href="#contact" class="hover:text-[var(--color-header-small)] transition-colors">Contact</a>
-            <a id="nav-get-started" href="/web/api.html" class="btn-main px-6 py-2 rounded-full font-bold text-sm flex items-center justify-center">Get Started</a>
+            <a id="nav-get-started" href="/web/test.html" class="btn-main px-6 py-2 rounded-full font-bold text-sm flex items-center justify-center">Get Started</a>
         </div>
-        <!-- Mobile Menu Button -->
-        <button class="md:hidden text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
-            <i data-lucide="menu" class="w-8 h-8"></i>
-        </button>
     </nav>
-
-    <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden px-6 py-4 bg-[#151516] border-b border-gray-800">
-        <div class="flex flex-col gap-4">
-            <a href="/web/api.html" class="block py-2">API</a>
-            <a href="/web/test.html" class="block py-2">Playground</a>
-            <a href="#features" class="block py-2">Features</a>
-            <a href="#about" class="block py-2">About</a>
-            <a href="#contact" class="block py-2">Contact</a>
-        </div>
-    </div>
 
     <!-- Hero Section -->
     <header class="relative px-6 md:px-12 py-20 md:py-32 max-w-7xl mx-auto">
@@ -63,7 +49,7 @@
                 Stop guessing keywords. Bridge the gap between your ideas and the resources you need with our intelligent, context-based search system.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
-                <a id="get-started-btn" href="/web/api.html" class="btn-main px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#7000bd] hover:text-white transition-all">
+                <a id="get-started-btn" href="/web/test.html" class="btn-main px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#7000bd] hover:text-white transition-all">
                     Get Started <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </a>
             </div>
@@ -181,21 +167,27 @@
 
             <div class="flex items-center justify-center">
                 <div class="about-carousel text-center text-xl leading-relaxed text-gray-700 max-w-4xl mx-auto">
-                    <p class="about-slide about-active">
-                        <span class="quote-mark">❝</span>
-                        We understand the frustration of modern research. Traditional library systems force you to guess the exact keywords an author used, leading to hours of wasted time sifting through irrelevant results. This "semantic gap" limits productivity and research quality.
-                        <span class="quote-mark">❞</span>
-                    </p>
-                    <p class="about-slide">
-                        <span class="quote-mark">❝</span>
-                        Our mission is to bridge that gap. KnowWhere transforms the discovery process by using Hybrid Retrieval-Augmented Generation.
-                        <span class="quote-mark">❞</span>
-                    </p>
-                    <p class="about-slide">
-                        <span class="quote-mark">❝</span>
-                        We empower students and researchers to find conceptually relevant materials instantly, improving the quality of academic output for the entire institution. We don't just find files; we find knowledge.
-                        <span class="quote-mark">❞</span>
-                    </p>
+                    <div class="about-slide about-active">
+                        <p class="about-slide__text">
+                            <span class="quote-mark">❝</span>
+                            We understand the frustration of modern research. Traditional library systems force you to guess the exact keywords an author used, leading to hours of wasted time sifting through irrelevant results. This "semantic gap" limits productivity and research quality.
+                            <span class="quote-mark">❞</span>
+                        </p>
+                    </div>
+                    <div class="about-slide">
+                        <p class="about-slide__text">
+                            <span class="quote-mark">❝</span>
+                            Our mission is to bridge that gap. KnowWhere transforms the discovery process by using Hybrid Retrieval-Augmented Generation.
+                            <span class="quote-mark">❞</span>
+                        </p>
+                    </div>
+                    <div class="about-slide">
+                        <p class="about-slide__text">
+                            <span class="quote-mark">❝</span>
+                            We empower students and researchers to find conceptually relevant materials instantly, improving the quality of academic output for the entire institution. We don't just find files; we find knowledge.
+                            <span class="quote-mark">❞</span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -281,16 +273,20 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div>
                 <h2 class="text-4xl font-bold mb-6 text-white">Ready to enhance your research?</h2>
-                <p class="text-[var(--color-text-muted)] text-lg mb-8">Contact the KnowWhere team for access, demos, or technical inquiries.</p>
+                <p class="text-[var(--color-text-muted)] text-lg mb-8">Contact the KnowWhere team for access or technical inquiries.</p>
                 
                 <div class="space-y-4">
                     <div class="flex items-center gap-4 text-white">
                         <i data-lucide="mail" class="text-[var(--color-header-small)]"></i>
-                        <span>support@knowwhere-system.edu</span>
+                        <span>knowwheretosearch@gmail.com</span>
                     </div>
                     <div class="flex items-center gap-4 text-white">
                         <i data-lucide="book-open" class="text-[var(--color-header-small)]"></i>
                         <span>Documentation & Resources</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-white">
+                        <i data-lucide="code" class="text-[var(--color-header-small)]"></i>
+                        <span>Source Code</span>
                     </div>
                 </div>
             </div>
@@ -298,14 +294,18 @@
             <!-- Form -->
             <div class="bg-white p-8 rounded-3xl shadow-2xl">
                 <h3 class="text-2xl font-bold mb-6" style="color: var(--color-text-secondary)">Contact Us</h3>
-                <form class="space-y-4">
+                <form id="contact-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-2">Name</label>
-                        <input type="text" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="Your Name">
+                        <input id="contact-name" type="text" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="Your Name" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Email</label>
+                        <input id="contact-email" type="email" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="you@example.com" required>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-2">Role</label>
-                        <select class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800 bg-white">
+                        <select id="contact-role" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800 bg-white" required>
                             <option>Student</option>
                             <option>Faculty</option>
                             <option>Library/ IT Staff</option>
@@ -314,9 +314,9 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-600 mb-2">Message</label>
-                        <textarea rows="4" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="How can we help?"></textarea>
+                        <textarea id="contact-message" rows="4" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="How can we help?" required></textarea>
                     </div>
-                    <button type="button" class="w-full py-4 rounded-lg btn-main font-bold mt-2">Send Message</button>
+                    <button id="contact-send" type="submit" class="w-full py-4 rounded-lg btn-main font-bold mt-2">Send Message</button>
                 </form>
             </div>
         </div>
@@ -324,12 +324,138 @@
 
     <!-- Footer -->
     <footer class="bg-[#151516] border-t border-gray-800 py-12 px-6 text-center text-gray-500 text-sm">
-        <p>&copy; 2025 KnowWhere. This is an open-source project.For academic purposes. All rights reserved.</p>
+        <p>&copy; 2025 KnowWhere. This is an open-source project. For academic purposes. All rights reserved.</p>
     </footer>
 
     <!-- Initialize Icons -->
     <script>
         lucide.createIcons();
+    </script>
+
+    <script>
+      (function () {
+        const form = document.getElementById('contact-form');
+        const nameEl = document.getElementById('contact-name');
+        const emailEl = document.getElementById('contact-email');
+        const roleEl = document.getElementById('contact-role');
+        const messageEl = document.getElementById('contact-message');
+        const sendBtn = document.getElementById('contact-send');
+
+        if (!form) return;
+
+        const inferredApiBase = window.location.origin.replace(/:8080$/, ':3000');
+        const apiBase = inferredApiBase || 'http://localhost:3000';
+        const COOLDOWN_MS = 60_000; // standard-ish: 1 message per minute per browser
+        const LAST_SENT_KEY = 'kw_contact_last_sent_at';
+
+        const baseBtnLabel = (sendBtn && sendBtn.textContent) ? sendBtn.textContent.trim() : 'Send Message';
+
+        const spinnerSvg = `
+          <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.35)" stroke-width="4"></circle>
+            <path d="M22 12a10 10 0 0 0-10-10" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+          </svg>
+        `;
+
+        const checkSvg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        `;
+
+        const setBtnState = (state) => {
+          if (!sendBtn) return;
+          sendBtn.classList.add('transition-all');
+          sendBtn.classList.add('flex', 'items-center', 'justify-center', 'gap-2');
+
+          if (state === 'loading') {
+            sendBtn.disabled = true;
+            sendBtn.setAttribute('aria-busy', 'true');
+            sendBtn.innerHTML = `${spinnerSvg}<span>Sending…</span>`;
+            return;
+          }
+
+          if (state === 'success') {
+            sendBtn.disabled = true;
+            sendBtn.setAttribute('aria-busy', 'false');
+            sendBtn.innerHTML = `<span>Sent. We’ll get back to you soon.</span>`;
+            return;
+          }
+
+          // idle
+          sendBtn.disabled = false;
+          sendBtn.removeAttribute('aria-busy');
+          sendBtn.textContent = baseBtnLabel;
+        };
+
+        const flashBtnMessage = (message) => {
+          if (!sendBtn) return;
+          sendBtn.disabled = true;
+          sendBtn.removeAttribute('aria-busy');
+          sendBtn.textContent = message;
+          window.setTimeout(() => setBtnState('idle'), 1800);
+        };
+
+        const getRemainingCooldownMs = () => {
+          const raw = localStorage.getItem(LAST_SENT_KEY);
+          const last = raw ? Number(raw) : 0;
+          if (!last || Number.isNaN(last)) return 0;
+          const remaining = last + COOLDOWN_MS - Date.now();
+          return remaining > 0 ? remaining : 0;
+        };
+
+        const formatCountdown = (ms) => {
+          const s = Math.ceil(ms / 1000);
+          if (s < 60) return `${s}s`;
+          const m = Math.ceil(s / 60);
+          return `${m}m`;
+        };
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!nameEl?.value?.trim() || !emailEl?.value?.trim() || !roleEl?.value?.trim() || !messageEl?.value?.trim()) {
+            flashBtnMessage('Please fill out all fields.');
+            return;
+          }
+
+          const remaining = getRemainingCooldownMs();
+          if (remaining > 0) {
+            flashBtnMessage(`Please wait ${formatCountdown(remaining)} to send again.`);
+            return;
+          }
+
+          let didSucceed = false;
+          try {
+            setBtnState('loading');
+
+            const res = await fetch(`${apiBase}/contact`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: nameEl.value.trim(),
+                email: emailEl.value.trim(),
+                role: roleEl.value.trim(),
+                message: messageEl.value.trim()
+              })
+            });
+
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(text || `HTTP ${res.status}`);
+            }
+
+            form.reset();
+            localStorage.setItem(LAST_SENT_KEY, String(Date.now()));
+            didSucceed = true;
+            setBtnState('success');
+            window.setTimeout(() => setBtnState('idle'), 1800);
+          } catch (err) {
+            flashBtnMessage('Failed to send. Please try again.');
+          } finally {
+            if (!didSucceed) setBtnState('idle');
+          }
+        });
+      })();
     </script>
 </body>
 </html>

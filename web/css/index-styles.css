@@ -144,20 +144,30 @@ html {
 
 /* About carousel */
 .about-carousel {
-    position: relative;
-    min-height: 180px;
+    display: grid;
+    place-items: center;
 }
 .about-slide {
+    grid-area: 1 / 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
     transition: opacity 0.8s ease;
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin: 0 auto;
+}
+.about-slide__text{
+    width: 100%;
+    margin: 0;
+    padding: 0 24px;
+    box-sizing: border-box;
 }
 .about-slide.about-active {
     opacity: 1;
-    position: relative;
+    visibility: visible;
+    pointer-events: auto;
 }
 .quote-mark {
     color: var(--color-main);

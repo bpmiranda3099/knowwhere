@@ -6,6 +6,7 @@ import { fetchPdfText } from '../utils/pdf';
 import { CLI_DEFAULTS, SOURCES, USER_AGENT, INGEST_DEFAULTS, INGEST_RATE_LIMIT } from '../../src/config/ingest/constants';
 import { z } from 'zod';
 import { pause } from '../utils/rateLimit';
+import { IngestRunOptions, IngestRunResult } from './shared';
 import {
   ensureAuthor,
   ensureSource,
@@ -14,6 +15,17 @@ import {
   linkPaperAuthor,
   linkPaperSubject
 } from '../utils/ingestDb';
+
+function shouldLogItems(): boolean {
+  const v = process.env.INGEST_LOG_ITEMS;
+  return v === '1' || v === 'true';
+}
+
+function progressEvery(): number {
+  const raw = process.env.INGEST_PROGRESS_EVERY;
+  const n = raw ? Number(raw) : 10;
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 10;
+}
 
 interface CrossrefItem {
   DOI: string;
@@ -38,11 +50,19 @@ async function upsert(items: CrossrefItem[]) {
   const client = await getClient();
   try {
     const sourceId = await ensureSource(client, 'crossref', 'https://api.crossref.org/works');
+    let processed = 0;
+    const every = progressEvery();
+    // eslint-disable-next-line no-console
+    console.log('[ingest][crossref] upserting', { totalFetched: items.length, progressEvery: every });
     for (const item of items) {
       await pause(INGEST_RATE_LIMIT.perRequestDelayMs);
       const id = item.DOI ?? item.URL;
       if (!id) continue;
       const title = item.title?.[0] ?? '';
+      if (shouldLogItems()) {
+        // eslint-disable-next-line no-console
+        console.log('[ingest][crossref]', { id, title });
+      }
       const abstract = item.abstract?.replace(/<\/?jats:[^>]+>/g, '').replace(/<[^>]+>/g, '') ?? '';
       const year = item.issued?.['date-parts']?.[0]?.[0] ?? null;
       const subjects = item.subject ?? [];
@@ -118,10 +138,29 @@ async function upsert(items: CrossrefItem[]) {
         const authorId = await ensureAuthor(client, authorName);
         await linkPaperAuthor(client, id, authorId, idx + 1);
       }
+
+      processed += 1;
+      if (processed % every === 0) {
+        // eslint-disable-next-line no-console
+        console.log('[ingest][crossref] progress', { processed, totalFetched: items.length });
+      }
     }
+    return processed;
   } finally {
     client.release();
   }
+}
+
+export async function runCrossrefIngest(options: IngestRunOptions): Promise<IngestRunResult> {
+  await pause(options.pacingMs);
+  const items = await fetchCrossref(options.query, options.quantity);
+  const processed = await upsert(items);
+
+  return {
+    fetched: items.length,
+    processed,
+    source: 'crossref'
+  };
 }
 
 async function main() {
@@ -130,17 +169,21 @@ async function main() {
     rows: z.coerce.number().int().positive().max(1000).default(CLI_DEFAULTS.crossrefRows)
   });
   const args = argsSchema.parse({ query: process.argv[2], rows: process.argv[3] });
-
-  const items = await fetchCrossref(args.query, args.rows);
-  await upsert(items);
+  await runCrossrefIngest({
+    query: args.query,
+    quantity: args.rows,
+    pacingMs: INGEST_RATE_LIMIT.sources.crossref.requestDelayMs
+  });
 }
 
-main()
-  .catch((err) => {
-    // eslint-disable-next-line no-console
-    console.error('ingestCrossref failed', err);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await closePool();
-  });
+if (require.main === module) {
+  main()
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('ingestCrossref failed', err);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await closePool();
+    });
+}

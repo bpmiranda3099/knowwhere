@@ -23,7 +23,15 @@ Hybrid lexical + semantic search API for academic discovery, backed by PostgreSQ
    - `docker-compose run --rm api npm run ingest:crossref -- "graph neural networks" 20`
    - `docker-compose run --rm api npm run ingest:openalex -- "graph neural networks" 20`
    (ingest scripts retry/backoff, add per-item delay, and attempt PDF text chunking when available)
-7) Optional backfill:
+7) Automated topic ingest (reuses the existing ingest runners with resume/checkpoint):
+   - Dry run (prints remaining keys):
+     - `docker-compose run --rm api npm run ingest:topics -- --dryRun`
+   - Start/resume toward a target count:
+     - `docker-compose run --rm api npm run ingest:topics -- --sources arxiv,crossref --target 100000 --perTopic 250 --resume`
+   - Notes:
+     - `processed` counts newly-processed items (DB pre-check skips already-ingested papers by `id`/`doi`).
+     - This is long-running; you can stop and re-run with `--resume`.
+8) Optional backfill:
    - `docker-compose run --rm api npm run backfill:tsv`
    - `docker-compose run --rm api npm run backfill:embeddings`
 
@@ -45,6 +53,22 @@ Hybrid lexical + semantic search API for academic discovery, backed by PostgreSQ
   }
   ```
   Response: `{ results: [...], mode, level }`, each result includes scores, snippet, doi/url, and optional `chunkId`.
+
+## Exposing the API via ngrok
+If you want to access the API from outside your machine (demo/panel), run ngrok in front of the API and enable proxy trust.
+
+- Start the stack:
+  - `docker-compose up -d`
+- Trust proxy headers in the API:
+  - `TRUST_PROXY=true docker-compose up -d api`
+- Expose the API port:
+  - `ngrok http 3000`
+
+Then open the playground and point it at the ngrok API base URL:
+- `http://localhost:8080/web/test.html?apiBase=https://<your-subdomain>.ngrok-free.app`
+
+If you want to lock down CORS when exposed publicly, set:
+- `CORS_ORIGINS=https://<your-subdomain>.ngrok-free.app`
 
 ## Embedding & rerank services
 - Embedding service should accept `POST { model, inputs: [text] }` and return `{"embeddings":[[...]]}` (or `{"data":[{"embedding":[...]}]}`).
