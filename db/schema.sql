@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS papers (
   source_id BIGINT REFERENCES sources(id),
   language_code TEXT REFERENCES languages(code),
   license TEXT,
-  embedding VECTOR(768),
+  embedding VECTOR(384),
   tsv TSVECTOR
 );
 
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS paper_chunks (
   chunk_id SERIAL PRIMARY KEY,
   paper_id TEXT REFERENCES papers(id) ON DELETE CASCADE,
   chunk_text TEXT,
-  chunk_embedding VECTOR(768),
+  chunk_embedding VECTOR(384),
   tsv TSVECTOR
 );
 

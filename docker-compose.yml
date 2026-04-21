@@ -57,7 +57,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgres://${DB_ADMIN_USER:-knowwhere_admin}:${DB_ADMIN_PASS:-knowwhere_admin_pass}@db:5432/knowwhere
+      # Use the DB superuser by default so local/dev stacks work without separately creating an admin role.
+      DATABASE_URL: postgres://${DB_SUPERUSER:-knowwhere_superadmin}:${DB_SUPERPASS:-knowwhere_superadmin_pass}@db:5432/knowwhere
       EMBEDDING_ENDPOINT: http://embedding:8081/embed
       EMBEDDING_MODEL: BAAI/bge-base-en-v1.5
       RERANK_ENDPOINT: http://reranker:8082/rerank
@@ -86,7 +87,13 @@ services:
       PGPASSWORD: ${DB_SUPERPASS:-knowwhere_superadmin_pass}
     volumes:
       - ./db/schema.sql:/schema.sql:ro
-    entrypoint: ["sh", "-c", "psql -h db -U ${DB_SUPERUSER:-knowwhere_superadmin} -d knowwhere -f /schema.sql || true"]
+    # Quiet output and suppress NOTICE spam (table already exists, extension already exists, etc).
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "psql -X -q -v ON_ERROR_STOP=1 -v VERBOSITY=terse -h db -U ${DB_SUPERUSER:-knowwhere_superadmin} -d knowwhere -c \"SET client_min_messages=warning;\" -f /schema.sql || true"
+      ]
 
   web:
     build:
@@ -95,6 +102,9 @@ services:
     container_name: knowwhere-web
     ports:
       - "8080:80"
+    volumes:
+      # Live static files (ir-judge.html, etc.) without rebuilding the image.
+      - ./web:/usr/share/nginx/html/web:ro
     depends_on:
       - api
 

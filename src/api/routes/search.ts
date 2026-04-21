@@ -10,6 +10,7 @@ const bodySchema = z.object({
   limit: z.number().int().positive().max(SEARCH_RULES.limitMax).optional(),
   mode: z.enum(['hybrid', 'lexical', 'semantic']).optional(),
   level: z.enum(['paper', 'chunk']).optional(),
+  rerank: z.boolean().optional(),
   filters: z
     .object({
       yearFrom: z.number().int().optional(),
@@ -41,7 +42,8 @@ export async function registerSearchRoutes(app: FastifyInstance): Promise<void> 
       limit: payload.limit,
       mode,
       level,
-      filters: payload.filters
+      filters: payload.filters,
+      rerank: payload.rerank
     });
 
     return reply.send({ results, mode, level });

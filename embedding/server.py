@@ -31,5 +31,5 @@ def embed(req: EmbedRequest):
 
 
 if __name__ == "__main__":
-  port = int(os.getenv("PORT", "8081"))
-  uvicorn.run(app, host="0.0.0.0", port=port)
+  port = int(os.getenv("PORT", "8081"))  # pragma: no cover
+  uvicorn.run(app, host="0.0.0.0", port=port)  # pragma: no cover

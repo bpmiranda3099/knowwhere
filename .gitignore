@@ -29,6 +29,7 @@ __pycache__/
 *.py[cod]
 venv/
 .venv/
+.venv-pytest/
 env/
 ENV/
 pip-log.txt
@@ -59,4 +60,7 @@ models
 
 # Documentation
 .vercel
+
+# Tests
+tests/eval/ir-metrics/results
 

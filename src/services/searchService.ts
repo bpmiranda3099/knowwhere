@@ -102,10 +102,11 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
   }));
 
   // Optional rerank on top results, but keep full list.
+  const rerankAllowed = request.rerank ?? true;
   const rerankTop = Math.min(baseResults.length, 20);
   const rerankCandidates = baseResults.slice(0, rerankTop);
   const rerankScores =
-    (mode === 'hybrid' || mode === 'semantic') && rerankCandidates.length
+    rerankAllowed && (mode === 'hybrid' || mode === 'semantic') && rerankCandidates.length
       ? await rerank(
           request.q,
           rerankCandidates.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')

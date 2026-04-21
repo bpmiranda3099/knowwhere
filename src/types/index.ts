@@ -15,6 +15,11 @@ export interface SearchRequest {
   mode?: Mode;
   level?: Level;
   filters?: SearchFilters;
+  /**
+   * Optional override for reranking. When omitted, semantic/hybrid will rerank if enabled.
+   * When false, semantic/hybrid will skip the reranker even if configured.
+   */
+  rerank?: boolean;
 }
 
 export interface SearchResult {
