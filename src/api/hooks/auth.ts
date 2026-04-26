@@ -3,6 +3,8 @@ import { config } from '../../config/env';
 
 export async function apiKeyGuard(req: FastifyRequest, reply: FastifyReply) {
   if (!config.API_KEY) return;
+  // Allow CORS preflight without requiring auth headers.
+  if (req.method === 'OPTIONS') return;
   if (req.url.startsWith('/health') || req.url.startsWith('/ready') || req.url.startsWith('/contact')) return;
 
   const headerKey = req.headers['x-api-key'];

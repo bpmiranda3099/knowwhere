@@ -1,7 +1,8 @@
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { INGEST_RATE_LIMIT } from '../src/config/ingest/constants';
+import { defaultIngestTopicsStateFile, writeTopicIngestStateFile } from '../src/config/ingest/stateFile';
 import { closePool } from '../src/db/db';
 import { runArxivIngest } from './ingest/ingestArxiv';
 import { runCrossrefIngest } from './ingest/ingestCrossref';
@@ -140,7 +141,7 @@ async function readState(path: string): Promise<TopicStateV1 | null> {
 }
 
 async function writeState(path: string, state: TopicStateV1): Promise<void> {
-  await writeFile(path, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  await writeTopicIngestStateFile(path, state);
 }
 
 type TopicRunConfig = {
@@ -180,9 +181,8 @@ async function collectTopicRunConfig(rl: ReturnType<typeof createInterface>): Pr
   const perTopic = await promptUntilValid('Per-topic quantity [250]: ', rl, (v) =>
     v.trim() ? parsePositiveInt(v, 'Per-topic quantity') : 250
   );
-  const stateFile = await promptUntilValid('State file [.ingest-topics-state.json]: ', rl, (v) =>
-    v.trim() ? v.trim() : '.ingest-topics-state.json'
-  );
+  const defaultSf = defaultIngestTopicsStateFile();
+  const stateFile = await promptUntilValid(`State file [${defaultSf}]: `, rl, (v) => (v.trim() ? v.trim() : defaultSf));
   const resume = await promptUntilValid('Resume from state file? [Y/n]: ', rl, (v) => {
     const normalized = v.trim().toLowerCase();
     if (normalized === '' || normalized === 'y' || normalized === 'yes') return true;

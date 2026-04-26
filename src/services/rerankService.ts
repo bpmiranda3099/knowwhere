@@ -10,7 +10,7 @@ export async function rerank(
   candidates: string[]
 ): Promise<number[] | null> {
   // Allow bypass in automated tests where the reranker service isn't started.
-  const rerankDisabled = process.env.SKIP_RERANK === '1' || process.env.SKIP_RERANK === 'true';
+  const rerankDisabled = new Set(['1', 'true']).has(process.env.SKIP_RERANK ?? '');
   if (config.NODE_ENV === 'test' && rerankDisabled) {
     return null;
   }
@@ -38,12 +38,13 @@ export async function rerank(
 
     const data = (await res.json()) as RerankResponse;
     if (Array.isArray(data.scores)) {
+      clearTimeout(timeout);
       return data.scores;
     }
+    clearTimeout(timeout);
     return null;
   } catch (err) {
-    throw new Error(`rerank error: ${(err as Error).message}`);
-  } finally {
     clearTimeout(timeout);
+    throw new Error(`rerank error: ${(err as Error).message}`);
   }
 }

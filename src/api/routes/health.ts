@@ -48,10 +48,12 @@ export async function registerHealthRoutes(app: FastifyInstance): Promise<void> 
       checks.db = await checkDb();
     }
     if (requested.includes('embedding')) {
-      checks.embedding = await checkHttp(`${config.EMBEDDING_ENDPOINT?.replace(/\/embed$/, '')}/health`);
+      const base = config.EMBEDDING_ENDPOINT ? config.EMBEDDING_ENDPOINT.replace(/\/embed$/, '') : undefined;
+      checks.embedding = await checkHttp(base ? `${base}/health` : undefined);
     }
     if (requested.includes('reranker') && config.RERANK_ENDPOINT) {
-      checks.reranker = await checkHttp(`${config.RERANK_ENDPOINT?.replace(/\/rerank$/, '')}/health`);
+      const base = config.RERANK_ENDPOINT.replace(/\/rerank$/, '');
+      checks.reranker = await checkHttp(`${base}/health`);
     }
     if (requested.includes('web')) {
       // No internal web health; mark unknown

@@ -61,5 +61,20 @@ describe('embedText (unit)', () => {
     const { embedText } = await import('../../../src/services/embeddingClient');
     await expect(embedText('hi')).rejects.toThrow(/Unsupported embedding response shape/);
   });
+
+  it('throws when embedding endpoint responds non-ok', async () => {
+    vi.doMock('../../../src/config/env', () => ({
+      config: { EMBEDDING_ENDPOINT: 'http://embed', EMBEDDING_MODEL: 'm' }
+    }));
+    // @ts-expect-error test override
+    global.fetch = vi.fn(async () => ({
+      ok: false,
+      status: 502,
+      text: async () => 'bad gateway'
+    }));
+
+    const { embedText } = await import('../../../src/services/embeddingClient');
+    await expect(embedText('hi')).rejects.toThrow(/embedText failed \(502\): bad gateway/);
+  });
 });
 

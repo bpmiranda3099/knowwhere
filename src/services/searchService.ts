@@ -193,13 +193,20 @@ export async function search(request: SearchRequest): Promise<SearchResult[]> {
   const rerankCandidates =
     substantives.length > 0 ? substantives.slice(0, rerankTop) : baseResults.slice(0, rerankTop);
   const rerankCandidateIds = new Set(rerankCandidates.map((r) => r.id));
-  const rerankScores =
-    rerankCandidates.length > 0
-      ? await rerank(
-          request.q,
-          rerankCandidates.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')
-        )
-      : null;
+  let rerankScores: number[] | null = null;
+  if (rerankCandidates.length > 0) {
+    try {
+      rerankScores = await rerank(
+        request.q,
+        rerankCandidates.map((r) => r.snippet ?? r.abstract ?? r.title ?? '')
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      // eslint-disable-next-line no-console
+      console.error('[search] rerank failed; returning fusion-ranked results', { message });
+      rerankScores = null;
+    }
+  }
 
   if (rerankScores) {
     const scored = rerankCandidates.map((result, idx) => ({

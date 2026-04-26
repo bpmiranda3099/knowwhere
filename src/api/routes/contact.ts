@@ -8,7 +8,7 @@ const contactBodySchema = z.object({
   name: z.string().trim().min(1).max(120),
   email: z.string().trim().email().max(320),
   role: z.string().trim().min(1).max(120),
-  message: z.string().trim().min(1).max(5000)
+  message: z.string().trim().min(1).max(250)
 });
 
 function isSmtpConfigured() {

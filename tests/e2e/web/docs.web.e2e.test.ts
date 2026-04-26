@@ -15,7 +15,8 @@ test('playground loads and shows search controls', async ({ page }) => {
 
   await expect(page.locator('#query')).toBeVisible();
   await expect(page.locator('#search-btn')).toBeVisible();
-  await expect(page.locator('#results-list')).toBeVisible();
+  await expect(page.locator('#results-list-lex')).toBeVisible();
+  await expect(page.locator('#results-list-hybrid')).toBeVisible();
 });
 
 test('playground can search and render a seeded paper', async ({ page }) => {
@@ -33,11 +34,11 @@ test('playground can search and render a seeded paper', async ({ page }) => {
     throw new Error(`Expected /search 200, got ${res.status()}. Body: ${body}`);
   }
 
-  // If the UI shows a failure message, fail with that context.
-  await expect(page.locator('#status')).not.toContainText('Search failed', { timeout: 60_000 });
+  // No error toast (user-friendly failures use #kw-toast-host .kw-toast--error).
+  await expect(page.locator('#kw-toast-host .kw-toast--error')).toHaveCount(0, { timeout: 60_000 });
 
-  // Wait for at least one rendered result card.
-  await expect(page.locator('#results-list .result-card').first()).toBeVisible({ timeout: 60_000 });
-  await expect(page.locator('#results-list')).toContainText('Graph Neural Networks for Molecules (Seed)');
+  // Wait for at least one rendered result card (seeded example appears in either column).
+  const firstCard = page.locator('.result-card').filter({ hasText: 'Graph Neural Networks for Molecules' }).first();
+  await expect(firstCard).toBeVisible({ timeout: 60_000 });
 });
 

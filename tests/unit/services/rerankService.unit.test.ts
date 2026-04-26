@@ -24,9 +24,35 @@ describe('rerank (unit)', () => {
     await expect(rerank('q', ['a'])).resolves.toBeNull();
   });
 
+  it('returns null when disabled via env=true', async () => {
+    process.env.SKIP_RERANK = 'true';
+    vi.doMock('../../../src/config/env', () => ({
+      config: { NODE_ENV: 'test', RERANK_ENDPOINT: 'http://rerank' }
+    }));
+    const { rerank } = await import('../../../src/services/rerankService');
+    await expect(rerank('q', ['a'])).resolves.toBeNull();
+  });
+
   it('returns null when candidates empty', async () => {
     vi.doMock('../../../src/config/env', () => ({
       config: { NODE_ENV: 'production', RERANK_ENDPOINT: 'http://rerank' }
+    }));
+    const { rerank } = await import('../../../src/services/rerankService');
+    await expect(rerank('q', [])).resolves.toBeNull();
+  });
+
+  it('does not auto-disable in test env unless SKIP_RERANK is set', async () => {
+    vi.doMock('../../../src/config/env', () => ({
+      config: { NODE_ENV: 'test', RERANK_ENDPOINT: 'http://rerank' }
+    }));
+    const { rerank } = await import('../../../src/services/rerankService');
+    await expect(rerank('q', [])).resolves.toBeNull();
+  });
+
+  it('treats SKIP_RERANK=0 as not disabled', async () => {
+    process.env.SKIP_RERANK = '0';
+    vi.doMock('../../../src/config/env', () => ({
+      config: { NODE_ENV: 'test', RERANK_ENDPOINT: 'http://rerank' }
     }));
     const { rerank } = await import('../../../src/services/rerankService');
     await expect(rerank('q', [])).resolves.toBeNull();
@@ -59,6 +85,33 @@ describe('rerank (unit)', () => {
 
     const { rerank } = await import('../../../src/services/rerankService');
     await expect(rerank('q', ['a'])).rejects.toThrow(/rerank failed/);
+  });
+
+  it('returns null when response json has no scores array', async () => {
+    vi.doMock('../../../src/config/env', () => ({
+      config: { NODE_ENV: 'production', RERANK_ENDPOINT: 'http://rerank' }
+    }));
+    // @ts-expect-error test override
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({})
+    }));
+
+    const { rerank } = await import('../../../src/services/rerankService');
+    await expect(rerank('q', ['a'])).resolves.toBeNull();
+  });
+
+  it('wraps fetch exceptions as rerank error', async () => {
+    vi.doMock('../../../src/config/env', () => ({
+      config: { NODE_ENV: 'production', RERANK_ENDPOINT: 'http://rerank' }
+    }));
+    // @ts-expect-error test override
+    global.fetch = vi.fn(async () => {
+      throw new Error('network down');
+    });
+
+    const { rerank } = await import('../../../src/services/rerankService');
+    await expect(rerank('q', ['a'])).rejects.toThrow(/rerank error: network down/);
   });
 });
 

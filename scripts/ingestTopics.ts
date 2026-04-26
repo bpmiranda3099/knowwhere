@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { ARXIV_CORE_QUERIES, CORE_TOPICS, CORE_TOPIC_GROUPS } from './ingest/topics/coreTopics';
+import { defaultIngestTopicsStateFile, writeTopicIngestStateFile } from '../src/config/ingest/stateFile';
 import { INGEST_RATE_LIMIT } from '../src/config/ingest/constants';
 import { closePool } from '../src/db/db';
 import { runArxivIngest } from './ingest/ingestArxiv';
@@ -29,7 +31,7 @@ const argsSchema = z.object({
     .pipe(z.array(z.enum(['arxiv', 'crossref']))),
   resume: z.coerce.boolean().default(true),
   dryRun: z.coerce.boolean().default(false),
-  stateFile: z.string().min(1).default('.ingest-topics-state.json'),
+  stateFile: z.string().min(1),
   maxRetriesPerTopic: z.coerce.number().int().nonnegative().max(10).default(3),
   backoffBaseMs: z.coerce.number().int().positive().default(2000)
 });
@@ -41,11 +43,12 @@ function parseArgs() {
     return idx === -1 ? undefined : argv[idx + 1];
   };
   const has = (flag: string) => argv.includes(flag);
+  const stateFromFlag = get('--stateFile')?.trim();
   return argsSchema.parse({
     target: get('--target'),
     perTopic: get('--perTopic'),
     sources: get('--sources'),
-    stateFile: get('--stateFile'),
+    stateFile: stateFromFlag && stateFromFlag.length > 0 ? stateFromFlag : defaultIngestTopicsStateFile(),
     resume: has('--no-resume') ? false : has('--resume') ? true : undefined,
     dryRun: has('--dryRun'),
     maxRetriesPerTopic: get('--maxRetriesPerTopic'),
@@ -65,7 +68,7 @@ async function readState(path: string): Promise<TopicStateV1 | null> {
 }
 
 async function writeState(path: string, state: TopicStateV1): Promise<void> {
-  await writeFile(path, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  await writeTopicIngestStateFile(path, state);
 }
 
 function nowIso() {
@@ -125,7 +128,8 @@ async function main() {
       `target=${fmt(state.target)}`,
       `perTopic=${fmt(state.perTopic)}`,
       `sources=${state.sources.join(',')}`,
-      `resume=${args.resume}`
+      `resume=${args.resume}`,
+      `stateFile=${resolve(args.stateFile)}`
     ].join(' ')
   );
   // eslint-disable-next-line no-console

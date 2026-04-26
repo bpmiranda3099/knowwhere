@@ -6,6 +6,34 @@ describe('db helpers (unit)', () => {
     vi.clearAllMocks();
   });
 
+  it('logs on pool error event', async () => {
+    const poolQuery = vi.fn();
+    const poolConnect = vi.fn();
+    const poolEnd = vi.fn();
+    const poolOn = vi.fn();
+
+    vi.doMock('pg', () => ({
+      Pool: vi.fn(() => ({
+        query: poolQuery,
+        connect: poolConnect,
+        end: poolEnd,
+        on: poolOn
+      }))
+    }));
+    vi.doMock('../../../src/config/env', () => ({ config: { DATABASE_URL: 'postgres://x' } }));
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await import('../../../src/db/db');
+
+    const onErrorCall = poolOn.mock.calls.find((c) => c[0] === 'error');
+    expect(onErrorCall).toBeTruthy();
+    const handler = onErrorCall?.[1] as ((err: unknown) => void) | undefined;
+    handler?.(new Error('pg boom'));
+
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
   it('query delegates to pool.query', async () => {
     const poolQuery = vi.fn().mockResolvedValue({ rows: [] });
     const poolConnect = vi.fn();

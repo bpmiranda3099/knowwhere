@@ -27,6 +27,48 @@ describe('search (unit)', () => {
     expect(res[0].id).toBe('1');
   });
 
+  it('returns fusion-ranked results when rerank throws', async () => {
+    const queryMock = vi.fn().mockResolvedValue({
+      rows: [
+        {
+          id: 'a',
+          title: 't1',
+          abstract: 'x',
+          doi: null,
+          url: null,
+          subjects: null,
+          source: null,
+          snippet: 's1',
+          hybrid_score: 0.1
+        },
+        {
+          id: 'b',
+          title: 't2',
+          abstract: 'x',
+          doi: null,
+          url: null,
+          subjects: null,
+          source: null,
+          snippet: 's2',
+          hybrid_score: 0.9
+        }
+      ]
+    });
+    const embedMock = vi.fn().mockResolvedValue([0.1]);
+    const rerankMock = vi.fn().mockRejectedValue(new Error('rerank failed (500): Internal Server Error'));
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    vi.doMock('../../../src/db/db', () => ({ query: queryMock }));
+    vi.doMock('../../../src/services/embeddingClient', () => ({ embedText: embedMock }));
+    vi.doMock('../../../src/services/rerankService', () => ({ rerank: rerankMock }));
+
+    const { search } = await import('../../../src/services/searchService');
+    const res = await search({ q: 'hello', mode: 'hybrid', level: 'paper', limit: 5 });
+    errSpy.mockRestore();
+    expect(rerankMock).toHaveBeenCalled();
+    expect(res.map((r) => r.id)).toEqual(['b', 'a']);
+  });
+
   it('hybrid mode calls embedText and reranks top results when scores returned', async () => {
     const longAb = 'x'.repeat(120);
     const queryMock = vi.fn().mockResolvedValue({

@@ -49,6 +49,10 @@ logs/
 # Docker
 docker-compose.override.yml
 
+# Ingest topic checkpoints (host-persisted; keep directory via data/ingest/.gitkeep)
+data/ingest/*
+!data/ingest/.gitkeep
+
 # Misc
 Thumbs.db
 

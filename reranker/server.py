@@ -1,9 +1,13 @@
+import logging
 import os
 from typing import List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sentence_transformers import CrossEncoder
 import uvicorn
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 MODEL_NAME = os.getenv("MODEL_NAME", "BAAI/bge-reranker-base")
 
@@ -26,8 +30,12 @@ def rerank(req: RerankRequest):
   if not req.documents:
     raise HTTPException(status_code=400, detail="documents cannot be empty")
   pairs = [[req.query, doc] for doc in req.documents]
-  scores = model.predict(pairs).tolist()
-  return {"scores": scores}
+  try:
+    scores = model.predict(pairs).tolist()
+    return {"scores": scores}
+  except Exception as e:
+    logger.exception("rerank inference failed (query_len=%s n_docs=%s)", len(req.query), len(req.documents))
+    raise HTTPException(status_code=503, detail=f"rerank inference failed: {e}") from e
 
 
 if __name__ == "__main__":

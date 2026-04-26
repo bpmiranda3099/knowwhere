@@ -1,0 +1,8 @@
+| Test Case Scenario ID | Test Case Scenario | Action | Actual Input | Expected Result |
+|---|---|---|---|---|
+| KN-NF-UT-01 | Ingest endpoint logs completion status | Start ingest and wait for completion log | **Request**: `POST http://localhost:3000/ingest` **Body**: `{"source":"openalex","query":"test","count":1}` **Wait**: 10–60s | A log entry appears showing status `completed` or `failed (code X)` |
+| KN-NF-UT-02 | Contact logo is cached after first successful read | Submit contact twice with logo present | **Pre-step**: ensure `/app/assets/logo.png` exists **Request (twice)**: `POST http://localhost:3000/contact` **Body**: `{"name":"Ada","email":"ada@example.com","role":"Student","message":"Hello"}` | The logo is reused on the second request (no second file read) |
+| KN-NF-UT-03 | DB helper logs PG pool error events | With API running, stop DB abruptly during requests | **Action input**: stop DB container while hitting `/health?services=db` | The API process prints a console error containing “Unexpected PG client error” |
+| KN-NF-UT-04 | Pause returns immediately for 0 or negative | Call pause with non-positive values | **Calls**: `pause(0)`, `pause(-1)` | It returns immediately (no wait) |
+| KN-NF-UT-05 | Pause waits for positive duration | Call pause with a small positive value | **Call**: `pause(5)` | It waits briefly then returns |
+| KN-NF-UT-06 | fetchWithRetry retries on failure | Call `fetchWithRetry` with limited retries | **Call**: `fetchWithRetry("http://example.com", {}, 3, 1)` with first attempt failing and second succeeding | At least 2 attempts occur and the final attempt succeeds |

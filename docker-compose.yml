@@ -72,6 +72,8 @@ services:
       # Optionally restrict CORS when exposing publicly (comma-separated origins).
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       CONTACT_TO: ${CONTACT_TO:-knowwheretosearch@gmail.com}
+      # Persist topic-ingest checkpoints on the host (see ./data/ingest mount below).
+      INGEST_TOPICS_STATE_FILE: /data/ingest/topics-state.json
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SECURE: ${SMTP_SECURE:-false}
@@ -81,9 +83,14 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
-      - embedding
-      - reranker
+      db:
+        condition: service_healthy
+      embedding:
+        condition: service_healthy
+      reranker:
+        condition: service_healthy
+    volumes:
+      - ./data/ingest:/data/ingest
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s

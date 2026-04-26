@@ -27,7 +27,11 @@ export async function buildServer() {
   await app.register(helmet, { contentSecurityPolicy: false });
 
   await app.register(cors, {
-    origin: config.corsOrigins.length > 0 ? config.corsOrigins : true
+    origin: config.corsOrigins.length > 0 ? config.corsOrigins : true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-api-key'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   });
 
   await app.register(rateLimit, {

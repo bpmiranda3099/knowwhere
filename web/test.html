@@ -2,13 +2,13 @@
 <html class="no-js" lang="en">
 <head>
   <meta charset="utf-8">
-  <title>KnowWhere Search</title>
+  <title>KnowWhere Search Playground</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Favicon is injected via components/favicon.html -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.5/pagination.css">
   <link rel="stylesheet" href="css/style.css" media="all">
 </head>
-<body class="content-page--search-empty">
+<body class="kw-theme-light content-page--search-empty">
 
 <script>
   // Load GitHub corner + favicon components from `components/` and insert into the page.
@@ -61,9 +61,6 @@
           <button id="search-btn" class="btn btn-primary">Search</button>
         </div>
       </div>
-      <div class="form-actions">
-        <span id="status" class="status"></span>
-      </div>
     </div>
   </div>
 </div>
@@ -74,7 +71,7 @@
     <div class="results-header">
       <div id="pagination-top-lex" class="pagination-top"></div>
     </div>
-    <div id="results-summary-lex" class="text-muted small" style="display:none;"></div>
+    <div id="results-summary-lex" class="text-muted small"></div>
     <div id="results-list-lex" class="results-grid"></div>
     <div id="pagination-lex" class="pagination-bottom"></div>
   </section>
@@ -84,11 +81,13 @@
     <div class="results-header">
       <div id="pagination-top-hybrid" class="pagination-top"></div>
     </div>
-    <div id="results-summary-hybrid" class="text-muted small" style="display:none;"></div>
+    <div id="results-summary-hybrid" class="text-muted small"></div>
     <div id="results-list-hybrid" class="results-grid"></div>
     <div id="pagination-hybrid" class="pagination-bottom"></div>
   </section>
 </div>
+
+<div id="kw-toast-host" class="kw-toast-host" aria-live="polite" aria-atomic="true"></div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.5/pagination.min.js"></script>

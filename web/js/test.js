@@ -3,8 +3,8 @@
   const apiBaseInput = document.getElementById('api-base');
   const apiKeyInput = document.getElementById('api-key');
   const queryInput = document.getElementById('query');
-  const statusEl = document.getElementById('status');
   const searchBtn = document.getElementById('search-btn');
+  const TOAST_AUTO_MS = 8000;
   const contentPageEl = document.body;
 
   const panels = {
@@ -157,9 +157,66 @@
   }
   apiKeyInput.value = localStorage.getItem('kw_api_key') || '';
 
-  function setStatus(message, type = 'muted') {
-    statusEl.textContent = message;
-    statusEl.className = `status ${type}`;
+  function showToast(message, variant = 'error') {
+    const host = document.getElementById('kw-toast-host');
+    if (!host || !message) return;
+    const el = document.createElement('div');
+    el.className = `kw-toast kw-toast--${variant}`;
+    el.setAttribute('role', variant === 'error' ? 'alert' : 'status');
+    el.setAttribute('tabindex', '0');
+    el.textContent = message;
+    let timer = setTimeout(() => {
+      el.remove();
+    }, TOAST_AUTO_MS);
+    const dismiss = () => {
+      clearTimeout(timer);
+      el.remove();
+    };
+    el.addEventListener('click', dismiss);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        dismiss();
+      }
+    });
+    host.appendChild(el);
+  }
+
+  /**
+   * Map thrown errors and HTTP responses to a short, non-technical message.
+   * @param {unknown} err
+   */
+  function userMessageForSearchError(err) {
+    const raw = err instanceof Error ? err.message : String(err);
+    const t = raw.toLowerCase();
+    if (t.includes('typeerror: failed to fetch') || t === 'failed to fetch' || t.includes('load failed')) {
+      return "We couldn’t connect to the search service. Check that it’s running and try again. If the problem continues, ask your team to check the address this page uses for search.";
+    }
+    if (t.includes('cors') || t.includes('access control')) {
+      return "The browser blocked this request for security settings. Your team may need to allow this website to talk to the search service, or the service may be down.";
+    }
+    if (t.includes(' 401') || t.includes('unauthorized')) {
+      return "Search isn’t available without permission. If your project uses a key, it needs to be set up the way your team described.";
+    }
+    if (t.includes(' 403') || t.includes('forbidden')) {
+      return "You don’t have access to run this search. Check with the person who gave you the link.";
+    }
+    if (t.includes(' 404') || t.includes('not found')) {
+      return "The search service wasn’t found at the address in use. Check that the address is correct, then try again.";
+    }
+    if (t.includes(' 400') || t.includes('bad request') || t.includes('validation')) {
+      return "This search can’t be run with what was entered. Try a shorter question or fewer words.";
+    }
+    if (
+      t.includes(' 500') ||
+      t.includes(' 502') ||
+      t.includes(' 503') ||
+      t.includes('internal server error') ||
+      t.includes('fetch failed')
+    ) {
+      return "The search service is busy or didn’t finish the request. Wait a few seconds and try again.";
+    }
+    return "Search didn’t complete. Please try again in a moment. If it keeps happening, let your team know.";
   }
 
   function leaveEmptyState() {
@@ -294,7 +351,7 @@
     const apiKey = apiKeyInput.value.trim();
     const q = queryInput.value.trim();
     if (!q) {
-      setStatus('Please enter a query.', 'text-danger');
+      showToast('Enter a few words in the search box, then try again.', 'info');
       return;
     }
 
@@ -308,14 +365,12 @@
     if (cached) {
       resultsLex = cached.lexical;
       resultsHybrid = cached.hybrid;
-      setStatus('', 'muted');
       localStorage.setItem('kw_api_key', apiKey);
       localStorage.setItem('kw_api_base', apiBase);
       renderResults();
       return;
     }
 
-    setStatus('Searching…', 'muted');
     setSearchLoading(true);
     showResultsSkeleton();
     try {
@@ -326,14 +381,13 @@
 
       resultsLex = lex;
       resultsHybrid = hybrid;
-      setStatus('', 'muted');
       localStorage.setItem('kw_api_key', apiKey);
       localStorage.setItem('kw_api_base', apiBase);
       writeSearchCache(apiBase, apiKey, q, basePayload.limit, basePayload.level, lex, hybrid);
       renderResults();
     } catch (err) {
       console.error(err);
-      setStatus(`Search failed: ${err.message}`, 'error');
+      showToast(userMessageForSearchError(err), 'error');
       resultsLex = [];
       resultsHybrid = [];
       renderResults();
