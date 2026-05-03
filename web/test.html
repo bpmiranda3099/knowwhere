@@ -43,30 +43,13 @@
   });
 </script>
 
-<script>
-  // Demo stage default API base (GitHub Pages). Set this before publishing.
-  // Example: window.__KW_DEMO_API_BASE = 'https://api.yourdomain.tld';
-  window.__KW_DEMO_API_BASE = window.__KW_DEMO_API_BASE || '';
-</script>
+<script>window.__KW_DEMO_API_BASE = window.__KW_DEMO_API_BASE || '';</script>
 
 <div class="overflow-hidden content-section" id="content-playground">
   <div class="search-empty-hero">
     <a href="./index.html" aria-label="KnowWhere home" title="KnowWhere">
       <img class="search-empty-hero__logo" src="images/logo.png" alt="KnowWhere">
     </a>
-  </div>
-  <div class="card search-card" style="margin-bottom: 14px;">
-    <div class="card__content">
-      <div class="search-row" style="gap: 10px; flex-wrap: wrap;">
-        <div style="display:flex; flex-direction:column; gap:6px; min-width: 280px; flex: 1;">
-          <label for="api-base" class="text-muted small" style="margin:0;">API base</label>
-          <input id="api-base" type="text" class="search-input" placeholder="https://your-api-host (demo) or /api (local)" value="">
-        </div>
-      </div>
-      <div class="text-muted small" style="margin-top: 10px;">
-        Tip: append <code>?stage=demo&amp;apiBase=https://&lt;host&gt;</code> to point the UI at your deployed proxy.
-      </div>
-    </div>
   </div>
   <div class="card search-card">
     <div class="card__content">

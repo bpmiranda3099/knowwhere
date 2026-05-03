@@ -1,6 +1,5 @@
 // Minimal search UI with pagination for /search (hybrid + paper only)
 (function () {
-  const apiBaseInput = document.getElementById('api-base');
   const queryInput = document.getElementById('query');
   const searchBtn = document.getElementById('search-btn');
   const TOAST_AUTO_MS = 8000;
@@ -165,13 +164,13 @@
     localStorage.getItem('kw_demo_api_base') ||
     '';
 
-  if (apiBaseFromQuery) {
-    apiBaseInput.value = apiBaseFromQuery;
-    localStorage.setItem(stage === 'demo' ? 'kw_demo_api_base' : 'kw_api_base', apiBaseFromQuery);
-  } else if (stage === 'demo') {
-    apiBaseInput.value = configuredDemoBase || '';
-  } else {
-    apiBaseInput.value = localStorage.getItem('kw_api_base') || inferredLocalBase || 'http://localhost:3000';
+  const inferredApiBase = (
+    apiBaseFromQuery ||
+    (stage === 'demo' ? configuredDemoBase : (localStorage.getItem('kw_api_base') || inferredLocalBase)) ||
+    ''
+  ).replace(/\/+$/, '');
+  if (inferredApiBase) {
+    localStorage.setItem(stage === 'demo' ? 'kw_demo_api_base' : 'kw_api_base', inferredApiBase);
   }
 
   function showToast(message, variant = 'error') {
@@ -363,10 +362,25 @@
 
   async function runSearch() {
     leaveEmptyState();
-    const apiBase = apiBaseInput.value.trim() || 'http://localhost:3000';
+    const apiBase =
+      (apiBaseFromQuery && apiBaseFromQuery.replace(/\/+$/, '')) ||
+      (stage === 'demo'
+        ? ((localStorage.getItem('kw_demo_api_base') || configuredDemoBase || '').replace(/\/+$/, ''))
+        : ((localStorage.getItem('kw_api_base') || inferredLocalBase || '').replace(/\/+$/, '')));
     const q = queryInput.value.trim();
     if (!q) {
       showToast('Enter a few words in the search box, then try again.', 'info');
+      return;
+    }
+    if (!apiBase) {
+      if (stage === 'demo') {
+        showToast(
+          'This demo needs an API base. Open this page with ?stage=demo&apiBase=https://<your-proxy-host> and try again.',
+          'error'
+        );
+        return;
+      }
+      showToast('Set the API base, then try again.', 'error');
       return;
     }
 
