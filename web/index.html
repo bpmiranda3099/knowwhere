@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="kw-landing">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KnowWhere</title>
     <link rel="icon" type="image/png" href="/web/images/favicon.png">
     <link rel="apple-touch-icon" href="/web/images/favicon.png">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#f0f1f2">
     
     <!-- Link to Custom CSS -->
+    <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="/css/index-styles.css">
 
     <!-- Tailwind CSS for Layout Utility -->
@@ -18,9 +19,27 @@
     <!-- Google Fonts: Noto Sans -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="antialiased selection:bg-red-500 selection:text-white">
+<body class="antialiased selection:bg-[var(--kw-primary)] selection:text-white">
+    <!-- Desktop-first: block narrow viewports (matches Tailwind `lg`) -->
+    <div
+      id="kw-desktop-only-gate"
+      class="fixed inset-0 z-[100] lg:hidden flex items-center justify-center px-8 py-12 bg-[var(--kw-bg)]"
+      aria-labelledby="kw-desktop-only-title"
+      aria-describedby="kw-desktop-only-desc"
+      role="region"
+    >
+      <div class="max-w-sm text-center text-[var(--kw-surface)]">
+        <img src="/web/images/logo.png" alt="" width="140" height="56" decoding="async" class="mx-auto mb-8 h-12 w-auto object-contain opacity-95" draggable="false">
+        <h2 id="kw-desktop-only-title" class="text-2xl font-bold text-[var(--kw-primary)] mb-4">
+          Larger screen needed
+        </h2>
+        <p id="kw-desktop-only-desc" class="text-[var(--kw-muted-text)] leading-relaxed text-base">
+          This landing page isn’t supported on small screens. Open KnowWhere on a tablet in landscape or a desktop browser, or widen your window.
+        </p>
+      </div>
+    </div>
     <!-- Navigation -->
-    <nav id="main-nav" class="w-full py-6 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto">
+    <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 w-full py-6 px-6 md:pl-12 md:pr-6 flex justify-between items-center max-w-7xl mx-auto relative">
         <div class="flex items-center gap-2">
             <a href="/web/index.html" aria-label="KnowWhere home">
               <div class="flex items-center gap-3">
@@ -28,79 +47,106 @@
               </div>
             </a>
         </div>
-        <div class="hidden md:flex gap-8 items-center font-medium">
-            <a href="/web/api.html" class="hover:text-[var(--color-header-small)] transition-colors">API</a>
-            <a href="#features" class="hover:text-[var(--color-header-small)] transition-colors">Features</a>
-            <a href="#about" class="hover:text-[var(--color-header-small)] transition-colors">About</a>
-            <a href="#contact" class="hover:text-[var(--color-header-small)] transition-colors">Contact</a>
-            <a id="nav-get-started" href="/web/test.html" class="btn-main px-6 py-2 rounded-full font-bold text-sm flex items-center justify-center">Get Started</a>
+        <div id="nav-links" class="hidden md:flex flex-1 justify-end gap-8 items-center font-medium">
+            <a href="/web/api.html" class="hover:text-[var(--kw-secondary)] transition-colors">API</a>
+            <a href="#features" class="hover:text-[var(--kw-secondary)] transition-colors">Features</a>
+            <a href="#about" class="hover:text-[var(--kw-secondary)] transition-colors">About</a>
+            <a href="#contact" class="hover:text-[var(--kw-secondary)] transition-colors">Contact</a>
         </div>
+        <a id="nav-get-started" href="/web/test.html" class="btn-main px-6 py-2 rounded-[4px] font-bold text-sm flex items-center justify-center">Get Started</a>
     </nav>
 
+    <!-- Spacer for fixed navbar -->
+    <div style="height:96px"></div>
+
     <!-- Hero Section -->
-    <header class="relative px-6 md:px-12 py-20 md:py-32 max-w-7xl mx-auto">
-        <div class="max-w-3xl">
-            <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
-                <span class="hero-line hero-idea">From idea</span> <br>
-                <span class="hero-line hero-sources text-white">to sources</span> <br>
-                <span class="hero-line hero-seconds text-[#8500de]">in seconds.</span>
-            </h1>
-            <p class="text-lg md:text-xl text-[var(--color-text-muted)] mb-10 leading-relaxed max-w-2xl">
-                Stop guessing keywords. Bridge the gap between your ideas and the resources you need with our intelligent, context-based search system.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <a id="get-started-btn" href="/web/test.html" class="btn-main px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#7000bd] hover:text-white transition-all">
-                    Get Started <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                </a>
+    <header id="kw-hero" class="relative flex items-center px-6 md:px-12 py-8 md:py-10 max-w-7xl mx-auto">
+        <div class="w-full flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
+            <div class="w-full lg:w-1/2 max-w-3xl">
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
+                    <span class="hero-line hero-idea">From idea</span> <br>
+                    <span class="hero-line hero-sources text-[var(--kw-surface)]">to sources</span> <br>
+                    <span class="hero-line hero-seconds text-[var(--kw-text-dark-grey)]">in seconds.</span>
+                </h1>
+                <p class="text-lg md:text-xl text-[var(--kw-muted-text)] mb-10 leading-relaxed max-w-2xl">
+                    Stop guessing keywords. Bridge the gap between your ideas and the resources you need with our intelligent, context-based search system.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                    <a id="get-started-btn" href="/web/test.html" class="btn-main h-14 px-8 rounded-[4px] font-bold text-lg inline-flex items-center justify-center gap-2 hover:bg-[var(--kw-primary-hover)] hover:text-white transition-all">
+                        Get Started
+                    </a>
+                    <!-- Point this to your Docker Hub org or search, e.g. https://hub.docker.com/u/yourorg -->
+                    <a
+                      id="hero-docker-btn"
+                      href="https://hub.docker.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Docker"
+                      title="Docker"
+                      class="inline-flex items-center justify-center w-14 h-14 rounded-[4px] border border-[color-mix(in_srgb,var(--kw-surface)_18%,transparent)] bg-[var(--kw-surface)] text-[var(--kw-bg)] transition-all duration-300 ease-in-out hover:bg-[var(--kw-primary-hover)] hover:border-transparent hover:text-white hover:-translate-y-[2px]"
+                    >
+                      <img
+                        src="/web/images/docker-logo.png"
+                        alt=""
+                        width="28"
+                        height="28"
+                        decoding="async"
+                        draggable="false"
+                        class="block h-7 w-7 object-contain pointer-events-none select-none"
+                        aria-hidden="true"
+                      >
+                    </a>
+                </div>
             </div>
-    </div>
-        
-        <!-- Lottie animation above the decorative purple circle -->
-        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.5/dist/dotlottie-wc.js" type="module"></script>
-        <dotlottie-wc src="https://lottie.host/a1d2af7f-1c82-468d-b4da-4f16e97ac1e5/QU61mTXL4j.lottie" class="lottie-topper hidden lg:block" style="width: 420px;height: 420px" autoplay loop></dotlottie-wc>
+
+            <div class="relative hidden lg:flex lg:w-1/2 items-center justify-center">
+                <!-- Neural clusters (Three.js) -->
+                <div id="kw-neural-clusters" class="kw-neural-clusters" aria-hidden="true"></div>
+            </div>
+        </div>
 
         <!-- Optional Decorative Element -->
         <div class="absolute top-20 right-0 -z-10 opacity-20 hidden lg:block">
             <svg width="600" height="600" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <path fill="#8500de" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.1,-19.2,95.8,-4.9C93.5,9.4,82.2,23.1,70.8,34.3C59.4,45.5,47.9,54.2,35.6,60.7C23.3,67.2,10.2,71.5,-1.9,74.8C-14,78.1,-25.1,80.4,-35.6,74.6C-46.1,68.8,-56,54.9,-64.1,41.1C-72.2,27.3,-78.5,13.6,-78.1,0.2C-77.7,-13.2,-70.6,-26.3,-60.9,-37.2C-51.2,-48.1,-38.9,-56.8,-26.3,-64.8C-13.7,-72.8,-0.8,-80.1,13.2,-82.5C27.2,-84.9,41.2,-82.4,55.2,-79.9Z" transform="translate(100 100)" />
+                <path fill="var(--kw-primary)" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.1,-19.2,95.8,-4.9C93.5,9.4,82.2,23.1,70.8,34.3C59.4,45.5,47.9,54.2,35.6,60.7C23.3,67.2,10.2,71.5,-1.9,74.8C-14,78.1,-25.1,80.4,-35.6,74.6C-46.1,68.8,-56,54.9,-64.1,41.1C-72.2,27.3,-78.5,13.6,-78.1,0.2C-77.7,-13.2,-70.6,-26.3,-60.9,-37.2C-51.2,-48.1,-38.9,-56.8,-26.3,-64.8C-13.7,-72.8,-0.8,-80.1,13.2,-82.5C27.2,-84.9,41.2,-82.4,55.2,-79.9Z" transform="translate(100 100)" />
             </svg>
         </div>
     </header>
 
     <!-- Simple Features Grid -->
-    <section id="features" class="bg-white py-20 px-6 md:px-12">
+    <section id="features" class="bg-[var(--kw-primary)] py-20 px-6 md:px-12">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4" style="color: var(--color-text-secondary)">Simple Features</h2>
-                <p class="text-[var(--color-text-muted)] max-w-2xl mx-auto">Everything you need to accelerate your academic discovery process.</p>
+                <h2 class="text-4xl font-bold mb-4 text-white">Simple Features</h2>
+                <p class="text-[var(--kw-neutral-300)] max-w-2xl mx-auto">Everything you need to accelerate your academic discovery process.</p>
             </div>
 
             <div class="flex flex-nowrap gap-8 overflow-x-auto pb-4 features-row">
                 <!-- Card 1 -->
-                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow bg-white group" style="--delay: 0s;">
-                    <div class="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center mb-6 group-hover:bg-[var(--color-main)] transition-colors">
-                        <i data-lucide="brain-circuit" class="w-8 h-8 text-[var(--color-main)] group-hover:text-white transition-colors"></i>
+                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-[4px] shadow-lg hover:shadow-xl transition-shadow group bg-[var(--kw-surface)]" style="--delay: 0s;">
+                    <div class="w-14 h-14 rounded-[4px] bg-[var(--kw-bg)] border border-[var(--kw-neutral-300)] flex items-center justify-center mb-6">
+                        <i data-lucide="brain-circuit" class="w-8 h-8 text-[var(--kw-surface)]"></i>
                     </div>
-                    <h4 class="text-xl font-bold mb-3">Context Search</h4>
-                    <p class="text-gray-600">Don't worry about exact phrasing. KnowWhere understands the "context" of your question to find results keywords miss.</p>
+                    <h4 class="text-xl font-bold mb-3 text-[var(--kw-bg)]">Context Search</h4>
+                    <p class="text-[var(--kw-bg)]">Don't worry about exact phrasing. KnowWhere understands the "context" of your question to find results keywords miss.</p>
                 </div>
 
                 <!-- Card 2 -->
-                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow bg-white group" style="--delay: 0.1s;">
-                    <div class="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center mb-6 group-hover:bg-[var(--color-header-small)] transition-colors">
-                        <i data-lucide="arrow-up-wide-narrow" class="w-8 h-8 text-[var(--color-header-small)] group-hover:text-white transition-colors"></i>
+                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-[4px] shadow-lg hover:shadow-xl transition-shadow group bg-[var(--kw-surface)]" style="--delay: 0.1s;">
+                    <div class="w-14 h-14 rounded-[4px] bg-[var(--kw-bg)] border border-[var(--kw-neutral-300)] flex items-center justify-center mb-6">
+                        <i data-lucide="arrow-up-wide-narrow" class="w-8 h-8 text-[var(--kw-surface)]"></i>
                     </div>
-                    <h4 class="text-xl font-bold mb-3">Smart Reranking</h4>
-                    <p class="text-gray-600">We use advanced AI to "double-check" and re-sort your search results, ensuring the most accurate answers float to the top.</p>
+                    <h4 class="text-xl font-bold mb-3 text-[var(--kw-bg)]">Smart Reranking</h4>
+                    <p class="text-[var(--kw-bg)]">We use advanced AI to "double-check" and re-sort your search results, ensuring the most accurate answers float to the top.</p>
                 </div>
 
                 <!-- Card 4 -->
-                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow bg-white group" style="--delay: 0.2s;">
-                    <div class="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center mb-6 group-hover:bg-green-600 transition-colors">
-                        <i data-lucide="shield-check" class="w-8 h-8 text-green-600 group-hover:text-white transition-colors"></i>
+                <div class="feature-card min-w-[260px] lg:min-w-[220px] p-8 rounded-[4px] shadow-lg hover:shadow-xl transition-shadow group bg-[var(--kw-surface)]" style="--delay: 0.2s;">
+                    <div class="w-14 h-14 rounded-[4px] bg-[var(--kw-bg)] border border-[var(--kw-neutral-300)] flex items-center justify-center mb-6">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-[var(--kw-surface)]"></i>
                     </div>
-                    <h4 class="text-xl font-bold mb-3">Hallucination-Free</h4>
-                    <p class="text-gray-600">Unlike standard chatbots, we only retrieve knowledge from actual academic files. No made-up facts, just grounded research.</p>
+                    <h4 class="text-xl font-bold mb-3 text-[var(--kw-bg)]">Hallucination-Free</h4>
+                    <p class="text-[var(--kw-bg)]">Unlike standard chatbots, KnowWhere only retrieve knowledge from actual academic files. No made-up facts, just grounded research.</p>
                 </div>
 
             </div>
@@ -110,63 +156,63 @@
     <!-- Powerful Features / Detailed Section -->
     <section class="py-20 px-6 md:px-12 max-w-7xl mx-auto">
         <div class="text-center mb-16">
-            <h2 class="text-4xl font-bold mb-4">Powerful Workflow,<br><span class="text-white">Simplified Discovery.</span></h2>
+            <h2 class="text-4xl font-bold mb-4 text-[var(--kw-surface)]">Powerful Workflow,<br><span class="text-[var(--kw-primary)]">Simplified Discovery.</span></h2>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Large Main Feature -->
-            <div class="card-bg p-10 rounded-3xl flex flex-col justify-center min-h-[400px]">
-                <div class="mb-8">
-                    <i data-lucide="layers" class="w-12 h-12 text-[var(--color-header-small)]"></i>
-                </div>
-                <h3 class="text-3xl font-bold mb-6 text-white">Research the Way Humans Think.</h3>
-                <p class="text-lg text-[var(--color-text-muted)] leading-relaxed">
-                    We use a unique "Progressive Narrowing" workflow. Just like a human researcher, the system first identifies the right set of documents, then lets you drill down to find specific details. It mimics your natural research pattern—starting broad and focusing in.
+            <!-- Large main copy: flat on the page (no card), same grid column as before -->
+            <div class="flex flex-col justify-center min-h-[400px] lg:pr-8">
+                <h3 class="text-3xl font-bold mb-6 text-[var(--kw-surface)]">Research the Way Humans <span class="text-[var(--kw-primary)]">Think.</span></h3>
+                <p class="text-lg text-[var(--kw-muted-text)] leading-relaxed">
+                    Just like a human researcher, the system first identifies the right set of documents, then lets you drill down to find specific details.
                 </p>
             </div>
 
             <!-- Smaller Feature Grid -->
             <div class="flex flex-col gap-8">
-                <div class="card-bg p-8 rounded-3xl">
+                <div class="card-bg p-8 rounded-[4px]">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="p-2 bg-[#8500de] rounded-lg text-white">
+                        <div class="p-2 bg-[var(--kw-primary)] rounded-[4px] text-white">
                             <i data-lucide="zap" class="w-6 h-6"></i>
                         </div>
-                        <h4 class="text-xl font-bold text-white">Hybrid Power</h4>
+                        <h4 class="text-xl font-bold text-[var(--kw-surface)]">Hybrid Power</h4>
                     </div>
-                    <p class="text-[var(--color-text-muted)]">Combines the speed of traditional search with the brainpower of AI vector search for maximum accuracy.</p>
+                    <p class="text-[var(--kw-muted-text)]">Combines the speed of traditional search with the brainpower of AI vector search for maximum accuracy.</p>
                 </div>
 
-                <div class="card-bg p-8 rounded-3xl">
+                <div class="card-bg p-8 rounded-[4px]">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="p-2 bg-[#ff4d4d] rounded-lg text-white">
+                        <div class="p-2 bg-[var(--kw-primary)] rounded-[4px] text-white">
                             <i data-lucide="clock" class="w-6 h-6"></i>
                         </div>
-                        <h4 class="text-xl font-bold text-white">Faster Reviews</h4>
+                        <h4 class="text-xl font-bold text-[var(--kw-surface)]">Faster Reviews</h4>
                     </div>
-                    <p class="text-[var(--color-text-muted)]">Help students and faculty complete literature reviews faster by reducing time spent sifting through irrelevant papers.</p>
+                    <p class="text-[var(--kw-muted-text)]">Help students and faculty complete literature reviews faster by reducing time spent sifting through irrelevant papers.</p>
                 </div>
 
-                <div class="card-bg p-8 rounded-3xl">
+                <div class="card-bg p-8 rounded-[4px]">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="p-2 bg-[#008ae3] rounded-lg text-white">
+                        <div class="p-2 bg-[var(--kw-primary)] rounded-[4px] text-white">
                             <i data-lucide="lock" class="w-6 h-6"></i>
                         </div>
-                        <h4 class="text-xl font-bold text-white">Data Privacy</h4>
+                        <h4 class="text-xl font-bold text-[var(--kw-surface)]">Data Privacy</h4>
                     </div>
-                    <p class="text-[var(--color-text-muted)]">Built for closed academic environments, ensuring your research data remains secure.</p>
+                    <p class="text-[var(--kw-muted-text)]">Built for closed academic environments, ensuring your research data remains secure.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="bg-white py-20 px-6 md:px-12">
+    <section id="about" class="bg-[var(--kw-primary)] py-20 px-6 md:px-12">
         <div class="max-w-7xl mx-auto">
-            <h2 class="text-4xl font-bold mb-12" style="color: var(--color-text-secondary)">About KnowWhere</h2>
+            <h2 class="text-4xl font-bold mb-12 text-white flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span>About</span>
+                <img src="/web/images/logo.png" alt="KnowWhere" class="h-10 md:h-11 w-auto object-contain" loading="lazy" decoding="async">
+            </h2>
 
             <div class="flex items-center justify-center">
-                <div class="about-carousel text-center text-xl leading-relaxed text-gray-700 max-w-4xl mx-auto">
+                <div class="about-carousel text-center text-xl leading-relaxed text-[var(--kw-bg)] max-w-4xl mx-auto rounded-[4px] p-8">
                     <div class="about-slide about-active">
                         <p class="about-slide__text">
                             <span class="quote-mark">❝</span>
@@ -184,7 +230,7 @@
                     <div class="about-slide">
                         <p class="about-slide__text">
                             <span class="quote-mark">❝</span>
-                            We empower students and researchers to find conceptually relevant materials instantly, improving the quality of academic output for the entire institution. We don't just find files; we find knowledge.
+                            We empower students and researchers to find conceptually relevant materials instantly, improving the quality of academic output for the entire institution. We don't just find resources; we find knowledge.
                             <span class="quote-mark">❞</span>
                         </p>
                     </div>
@@ -194,39 +240,39 @@
     </section>
 
     <!-- Team Section -->
-    <section class="bg-white pt-0 pb-20 px-6 md:px-12">
+    <section class="bg-[var(--kw-primary)] pt-0 pb-20 px-6 md:px-12">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold mb-4" style="color: var(--color-text-secondary)">The Team</h2>
-                <p class="text-gray-600 text-lg">Building KnowWhere together.</p>
+                <h2 class="text-4xl font-bold mb-4 text-white">The Team</h2>
+                <p class="text-[var(--kw-neutral-300)] text-lg">Building KnowWhere together.</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                <div class="flex flex-col items-center text-center gap-3">
-                    <img src="/images/brandon.jpg" alt="Brandon Miranda" class="w-40 h-40 rounded-full object-cover shadow-lg">
-                    <div>
-                        <p class="text-xl font-bold text-gray-900">Brandon Miranda</p>
-                        <p class="text-gray-600">Project Manager / Backend Developer</p>
-                    </div>
-                </div>
-                <div class="flex flex-col items-center text-center gap-3">
+                <div class="flex flex-col items-center text-center gap-3 rounded-[4px] p-6">
                     <img src="/images/alyssa.jpg" alt="Alyssa Mae Abac" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
-                        <p class="text-xl font-bold text-gray-900">Alyssa Mae Abac</p>
-                        <p class="text-gray-600">Documenter / Frontend Developer</p>
+                        <p class="text-xl font-bold text-[var(--kw-bg)]">Alyssa Mae Abac</p>
+                        <p class="text-[var(--kw-neutral-300)]">Team Leader / Documenter</p>
                     </div>
                 </div>
-                <div class="flex flex-col items-center text-center gap-3">
-                    <img src="/images/angelo.jpg" alt="Angelo Mark Xyz Fabian" class="w-40 h-40 rounded-full object-cover shadow-lg">
+                <div class="flex flex-col items-center text-center gap-3 rounded-[4px] p-6">
+                    <img src="/images/brandon.jpg" alt="Brandon Miranda" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
-                        <p class="text-xl font-bold text-gray-900">Angelo Mark Xyz Fabian</p>
-                        <p class="text-gray-600">Quality Control / Assurance Officer</p>
+                        <p class="text-xl font-bold text-[var(--kw-bg)]">Brandon Miranda</p>
+                        <p class="text-[var(--kw-neutral-300)]">System Architect / Programmer</p>
                     </div>
                 </div>
-                <div class="flex flex-col items-center text-center gap-3">
+                <div class="flex flex-col items-center text-center gap-3 rounded-[4px] p-6">
+                    <img src="/images/angelo.jpg" alt="Angelo Mark XYZ Fabian" class="w-40 h-40 rounded-full object-cover shadow-lg">
+                    <div>
+                        <p class="text-xl font-bold text-[var(--kw-bg)]">Angelo Mark Xyz Fabian</p>
+                        <p class="text-[var(--kw-neutral-300)]">Quality Control / Assurance</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center text-center gap-3 rounded-[4px] p-6">
                     <img src="/images/alex.png" alt="Alexander Asinas" class="w-40 h-40 rounded-full object-cover shadow-lg">
                     <div>
-                        <p class="text-xl font-bold text-gray-900">Alexander Asinas</p>
-                        <p class="text-gray-600">Public Relations Officer</p>
+                        <p class="text-xl font-bold text-[var(--kw-bg)]">Alexander Asinas</p>
+                        <p class="text-[var(--kw-neutral-300)]">Public Relations</p>
                     </div>
                 </div>
             </div>
@@ -235,6 +281,16 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
+        const gate = document.getElementById('kw-desktop-only-gate');
+        if (gate) {
+          const mq = window.matchMedia('(max-width: 1023px)');
+          const syncGateAria = () => {
+            gate.setAttribute('aria-hidden', mq.matches ? 'false' : 'true');
+          };
+          syncGateAria();
+          mq.addEventListener('change', syncGateAria);
+        }
+
         const slides = Array.from(document.querySelectorAll('.about-slide'));
         if (slides.length) {
           let idx = 0;
@@ -251,7 +307,6 @@
         }
 
         const getStarted = document.getElementById('get-started-btn');
-        const navGetStarted = document.getElementById('nav-get-started');
         const nav = document.getElementById('main-nav');
 
         // Stick navbar + swap CTA color on scroll
@@ -270,42 +325,42 @@
 
     <!-- Contact Section -->
     <section id="contact" class="py-20 px-6 md:px-12 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            <div>
-                <h2 class="text-4xl font-bold mb-6 text-white">Ready to enhance your research?</h2>
-                <p class="text-[var(--color-text-muted)] text-lg mb-8">Contact the KnowWhere team for access or technical inquiries.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-stretch">
+            <div class="flex flex-col justify-center">
+                <h2 class="text-4xl font-bold mb-6 text-[var(--kw-surface)]">Ready to enhance your research?</h2>
+                <p class="text-[var(--kw-muted-text)] text-lg mb-8">Open source and self-hostable. Contact us for setup or support.</p>
                 
                 <div class="space-y-4">
-                    <div class="flex items-center gap-4 text-white">
-                        <i data-lucide="mail" class="text-[var(--color-header-small)]"></i>
-                        <span>knowwheretosearch@gmail.com</span>
+                    <div class="flex items-center gap-4 text-[var(--kw-surface)]">
+                        <i data-lucide="mail" class="text-[var(--kw-secondary)]"></i>
+                        <a class="underline text-[var(--kw-link)] hover:text-[var(--kw-secondary-hover)]" href="mailto:knowwheretosearch@gmail.com">Email</a>
                     </div>
-                    <div class="flex items-center gap-4 text-white">
-                        <i data-lucide="book-open" class="text-[var(--color-header-small)]"></i>
-                        <span>Documentation & Resources</span>
+                    <div class="flex items-center gap-4 text-[var(--kw-surface)]">
+                        <i data-lucide="book-open" class="text-[var(--kw-secondary)]"></i>
+                        <a class="underline text-[var(--kw-link)] hover:text-[var(--kw-secondary-hover)]" href="https://drive.google.com/drive/folders/1DcJxkN16ZKHD79x4WSdkw__dUjBMjSkv?usp=drive_link" target="_blank" rel="noopener noreferrer">Documentation & Resources</a>
                     </div>
-                    <div class="flex items-center gap-4 text-white">
-                        <i data-lucide="code" class="text-[var(--color-header-small)]"></i>
-                        <span>Source Code</span>
+                    <div class="flex items-center gap-4 text-[var(--kw-surface)]">
+                        <i data-lucide="code" class="text-[var(--kw-secondary)]"></i>
+                        <a class="underline text-[var(--kw-link)] hover:text-[var(--kw-secondary-hover)]" href="https://github.com/ticlekiwi/API-Documentation-HTML-Template" target="_blank" rel="noopener noreferrer">Source Code</a>
                     </div>
                 </div>
             </div>
 
             <!-- Form -->
-            <div class="bg-white p-8 rounded-3xl shadow-2xl">
-                <h3 class="text-2xl font-bold mb-6" style="color: var(--color-text-secondary)">Contact Us</h3>
+            <div class="bg-[var(--kw-card)] border border-[var(--kw-border)] p-8 rounded-[4px] shadow-2xl">
+                <h3 class="text-2xl font-bold mb-6 text-[var(--kw-surface)]">Contact Us</h3>
                 <form id="contact-form" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-2">Name</label>
-                        <input id="contact-name" type="text" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="Your Name" required>
+                        <label class="block text-sm font-semibold text-[var(--kw-muted-text)] mb-2">Name</label>
+                        <input id="contact-name" type="text" class="w-full p-3 rounded-[4px] border border-[var(--kw-border)] focus:border-[var(--kw-primary)] outline-none text-[var(--kw-surface)] bg-[var(--kw-card)]" placeholder="Your Name" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-2">Email</label>
-                        <input id="contact-email" type="email" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800" placeholder="you@example.com" required>
+                        <label class="block text-sm font-semibold text-[var(--kw-muted-text)] mb-2">Email</label>
+                        <input id="contact-email" type="email" class="w-full p-3 rounded-[4px] border border-[var(--kw-border)] focus:border-[var(--kw-primary)] outline-none text-[var(--kw-surface)] bg-[var(--kw-card)]" placeholder="you@example.com" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-2">Role</label>
-                        <select id="contact-role" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800 bg-white" required>
+                        <label class="block text-sm font-semibold text-[var(--kw-muted-text)] mb-2">Role</label>
+                        <select id="contact-role" class="w-full py-3 pl-3 pr-10 rounded-[4px] border border-[var(--kw-border)] focus:border-[var(--kw-primary)] outline-none text-[var(--kw-surface)] bg-[var(--kw-card)]" required>
                             <option>Student</option>
                             <option>Faculty</option>
                             <option>Library/ IT Staff</option>
@@ -313,20 +368,20 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-2">Message</label>
+                        <label class="block text-sm font-semibold text-[var(--kw-muted-text)] mb-2">Message</label>
                         <div class="relative">
-                            <textarea id="contact-message" rows="4" maxlength="250" class="w-full p-3 rounded-lg border border-gray-300 focus:border-[var(--color-main)] outline-none text-gray-800 pr-16" placeholder="How can we help?" required></textarea>
-                            <div id="contact-message-counter" class="pointer-events-none absolute bottom-2 right-3 text-xs text-gray-400 tabular-nums">0/250</div>
+                            <textarea id="contact-message" rows="4" maxlength="250" class="w-full p-3 rounded-[4px] border border-[var(--kw-border)] focus:border-[var(--kw-primary)] outline-none text-[var(--kw-surface)] bg-[var(--kw-card)] pr-16" placeholder="How can we help?" required></textarea>
+                            <div id="contact-message-counter" class="pointer-events-none absolute bottom-2 right-3 text-xs text-[var(--kw-neutral-500)] tabular-nums">0/250</div>
                         </div>
                     </div>
-                    <button id="contact-send" type="submit" class="w-full py-4 rounded-lg btn-main font-bold mt-2">Send Message</button>
+                    <button id="contact-send" type="submit" class="w-full py-4 rounded-[4px] btn-main font-bold mt-2">Send Message</button>
                 </form>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-[#151516] border-t border-gray-800 py-12 px-6 text-center text-gray-500 text-sm">
+    <footer class="bg-[var(--kw-surface)] border-t border-[var(--kw-border)] py-12 px-6 text-center text-[var(--kw-neutral-500)] text-sm">
         <p>&copy; 2025 KnowWhere. This is an open-source project. For academic purposes. All rights reserved.</p>
     </footer>
 
@@ -335,9 +390,34 @@
         lucide.createIcons();
     </script>
 
+    <script src="js/three.min.js"></script>
+    <script src="js/neural-clusters.js"></script>
+
     <script>
       (function () {
+        // Fixed hero height (stable across scroll). Prefer CSS `svh` and only
+        // recalc on resize/orientation changes as a fallback.
+        const hero = document.getElementById('kw-hero');
+        const NAV_PX = 96;
+        if (hero) {
+          // Stable modern browsers: `svh` avoids address-bar jump while scrolling.
+          hero.style.height = `calc(100svh - ${NAV_PX}px)`;
+
+          // Fallback for older/mobile webviews: lock to initial visible height.
+          const setHeroHeightPx = () => {
+            const h = window.innerHeight || 0;
+            if (!h) return;
+            hero.style.height = `${Math.max(320, Math.floor(h - NAV_PX))}px`;
+          };
+          setHeroHeightPx();
+          window.addEventListener('resize', setHeroHeightPx, { passive: true });
+          window.addEventListener('orientationchange', setHeroHeightPx, { passive: true });
+        }
+
         const form = document.getElementById('contact-form');
+        const navCta = document.getElementById('nav-get-started');
+        const heroCta = document.getElementById('get-started-btn');
+        const heroSection = document.getElementById('kw-hero');
         const nameEl = document.getElementById('contact-name');
         const emailEl = document.getElementById('contact-email');
         const roleEl = document.getElementById('contact-role');
@@ -345,13 +425,60 @@
         const messageCounterEl = document.getElementById('contact-message-counter');
         const sendBtn = document.getElementById('contact-send');
 
+        // Show nav CTA only after the hero scrolls past the fixed nav.
+        // This is more reliable than observing the button itself (dynamic viewport + overlayed nav).
+        if (navCta && heroSection) {
+          const NAV_H = 96;
+          const setShown = (shown) => {
+            const on = Boolean(shown);
+            navCta.classList.toggle('kw-nav-cta--shown', on);
+            document.getElementById('main-nav')?.classList.toggle('kw-nav-cta-active', on);
+          };
+
+          const compute = () => {
+            const rect = heroSection.getBoundingClientRect();
+            // If the hero's bottom is above the nav, the hero CTA is certainly out of view.
+            setShown(rect.bottom <= NAV_H);
+          };
+
+          // Always hidden on initial load; will show after scroll past hero.
+          setShown(false);
+          compute();
+
+          if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver(() => compute(), { threshold: 0 });
+            io.observe(heroSection);
+          }
+          window.addEventListener('scroll', compute, { passive: true });
+          window.addEventListener('resize', compute, { passive: true });
+        }
+
         if (!form) return;
 
-        // Default to the nginx reverse-proxied API when served from the web container (/api/* → api:3000/*).
-        // Allow override for local/dev or direct API exposure (e.g. ?apiBase=https://<subdomain>.ngrok-free.app).
-        const inferredApiBase = `${window.location.origin}/api`;
-        const apiBaseFromQuery = new URLSearchParams(window.location.search).get('apiBase');
-        const apiBase = (apiBaseFromQuery || inferredApiBase || 'http://localhost:3000').replace(/\/+$/, '');
+        // Stage-aware API base:
+        // - local: nginx reverse-proxied API when served from the web container (/api/* → api:3000/*).
+        // - demo: deployed API base (intended for GitHub Pages).
+        window.__KW_DEMO_API_BASE = window.__KW_DEMO_API_BASE || '';
+        const params = new URLSearchParams(window.location.search);
+        const apiBaseFromQuery = params.get('apiBase')?.trim();
+        const stageFromQuery = params.get('stage')?.trim();
+        const inferredStage =
+          stageFromQuery ||
+          localStorage.getItem('kw_stage') ||
+          (window.location.hostname.endsWith('github.io') ? 'demo' : 'local');
+        const stage = inferredStage === 'demo' ? 'demo' : 'local';
+        localStorage.setItem('kw_stage', stage);
+
+        const inferredLocalBase = `${window.location.origin}/api`;
+        const configuredDemoBase =
+          (window.__KW_DEMO_API_BASE && String(window.__KW_DEMO_API_BASE).trim()) ||
+          localStorage.getItem('kw_demo_api_base') ||
+          '';
+        const apiBase = (
+          apiBaseFromQuery ||
+          (stage === 'demo' ? configuredDemoBase : inferredLocalBase) ||
+          'http://localhost:3000'
+        ).replace(/\/+$/, '');
         const COOLDOWN_MS = 60_000; // standard-ish: 1 message per minute per browser
         const LAST_SENT_KEY = 'kw_contact_last_sent_at';
 

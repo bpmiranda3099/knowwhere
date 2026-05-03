@@ -2,10 +2,10 @@
 	display:block;
 	overflow-x:auto;
 	padding:0.5em;
-	background:#ffffff;
+	background:var(--kw-card);
 }
 .hljs {
-	color:#fff;
+	color:var(--kw-surface);
 }
 .hljs-strong,.hljs-emphasis {
 	color:#a8a8a2
@@ -26,7 +26,7 @@
 	color:#b9b9b9
 }
 .hljs-string {
-	color:#ff4d4d
+	color:var(--kw-primary)
 }
 .hljs-subst,.hljs-type,.hljs-built_in,.hljs-builtin-name,.hljs-symbol,.hljs-selector-id,.hljs-selector-attr,.hljs-selector-pseudo,.hljs-template-tag,.hljs-template-variable,.hljs-addition {
 	color:#e0c46c

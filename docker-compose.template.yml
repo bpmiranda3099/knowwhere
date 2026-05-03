@@ -1,0 +1,102 @@
+# Hub-style deploy: pull published images only (no local `build:`).
+# Copy to `docker-compose.yml`, replace YOUR_ORG and TAG on embedding / reranker / api lines,
+# add `.env` and `schema.sql` beside this file — see docs/DEPLOYMENT.md
+
+services:
+  db:
+    image: ${DB_IMAGE:-pgvector/pgvector:pg16}
+    environment:
+      POSTGRES_USER: ${DB_SUPERUSER}
+      POSTGRES_PASSWORD: ${DB_SUPERPASS}
+      POSTGRES_DB: knowwhere
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_SUPERUSER} -d knowwhere"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  migrate:
+    image: ${DB_IMAGE:-pgvector/pgvector:pg16}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${DB_SUPERPASS}
+    volumes:
+      - ./schema.sql:/schema.sql:ro
+    entrypoint:
+      ["sh","-c","psql -X -q -v ON_ERROR_STOP=1 -h db -U ${DB_SUPERUSER} -d knowwhere -f /schema.sql || true"]
+
+  embedding:
+    image: YOUR_ORG/knowwhere-embedding:TAG
+    environment:
+      MODEL_NAME: ${MODEL_NAME:-BAAI/bge-small-en-v1.5}
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:8081/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  reranker:
+    image: YOUR_ORG/knowwhere-reranker:TAG
+    environment:
+      MODEL_NAME: ${RERANKER_MODEL:-cross-encoder/ms-marco-MiniLM-L-4-v2}
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:8082/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  api:
+    image: YOUR_ORG/knowwhere-api:TAG
+    depends_on:
+      db:
+        condition: service_healthy
+      embedding:
+        condition: service_healthy
+      reranker:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_KEY: ${API_KEY:-}
+      DATABASE_URL: postgres://${DB_SUPERUSER}:${DB_SUPERPASS}@db:5432/knowwhere
+      EMBEDDING_ENDPOINT: http://embedding:8081/embed
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
+      RERANK_ENDPOINT: http://reranker:8082/rerank
+      RERANK_ABSTAIN: ${RERANK_ABSTAIN:-0}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      CONTACT_TO: ${CONTACT_TO:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      INGEST_TOPICS_STATE_FILE: /data/ingest/topics-state.json
+    ports:
+      - "3000:3000"
+    volumes:
+      - ingest_data:/data/ingest
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  db_data:
+  ingest_data:

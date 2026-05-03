@@ -1,0 +1,52 @@
+/* KnowWhere global theme tokens (light default) */
+:root {
+  /* Primary & Secondary */
+  --kw-primary: #5e17eb;
+  --kw-secondary: #343895;
+
+  /* Neutral & UI */
+  --kw-surface: #2f3038; /* primary text on light */
+  --kw-neutral-500: #b4b9c4;
+  --kw-neutral-300: #d0d5db;
+  --kw-bg: #f0f1f2;
+
+  /* Derived */
+  --kw-border: var(--kw-neutral-300);
+  --kw-link: var(--kw-secondary);
+  --kw-card: #ffffff;
+  --kw-muted-text: color-mix(in srgb, var(--kw-surface) 70%, white);
+  /* Dark grey for emphasis lines (e.g. hero “in seconds”) — softer than surface */
+  --kw-text-dark-grey: color-mix(in srgb, var(--kw-surface) 62%, var(--kw-neutral-500));
+  --kw-focus-ring: color-mix(in srgb, var(--kw-primary) 28%, transparent);
+  --kw-primary-hover: color-mix(in srgb, var(--kw-primary) 86%, black);
+  --kw-secondary-hover: color-mix(in srgb, var(--kw-secondary) 86%, black);
+
+  /* Back-compat aliases (existing web CSS uses these) */
+  --color-main: var(--kw-primary);
+  --color-secondary: var(--kw-secondary);
+  --color-bg: var(--kw-bg);
+  --color-text-main: var(--kw-surface);
+  --color-text-secondary: var(--kw-surface);
+  --color-text-highlight: var(--kw-primary);
+  --color-text-muted: var(--kw-muted-text);
+  --color-header-large: var(--kw-primary);
+  --color-header-small: var(--kw-secondary);
+}
+
+html,
+body {
+  background-color: var(--kw-bg, #f0f1f2) !important;
+  color: var(--kw-surface, #2f3038) !important;
+}
+
+::selection {
+  background: var(--kw-primary);
+  color: #ffffff;
+}
+
+/* Keep legacy light-theme class working (now a no-op alias). */
+body.kw-theme-light {
+  background-color: var(--kw-bg) !important;
+  color: var(--kw-surface);
+}
+

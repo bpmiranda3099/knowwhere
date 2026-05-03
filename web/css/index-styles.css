@@ -1,25 +1,17 @@
-/* --- COLOR PALETTE & VARIABLES --- */
-:root {
-    /* --- Base Colors --- */
-    --color-main: #8500de;       /* French Violet */
-    --color-secondary: #db5edb;  /* Orchid */
-    --color-bg: #1f1f21;         /* Raisin Black */
+/* Colors are defined globally in `css/theme.css` via CSS variables. */
 
-    /* --- Text Colors --- */
-    --color-text-main: #ffffff;       /* White */
-    --color-text-secondary: #0a1f44;  /* Dark Navy */
-    --color-text-highlight: #ff4d4d;  /* Red */
-    --color-text-muted: #a1a1aa;      /* Lighter secondary text for dark bg */
-
-    /* --- Header Colors --- */
-    --color-header-large: #ff4d4d;    /* H1, H2, H3 */
-    --color-header-small: #008ae3;    /* H4, H5, H6 */
+/* Narrow viewports: lock scroll behind desktop-only overlay (landing page) */
+@media (max-width: 1023px) {
+    html.kw-landing body {
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
 }
 
 /* --- General Setup --- */
 body {
-    background-color: var(--color-bg);
-    color: var(--color-text-main);
+    background-color: var(--kw-bg);
+    color: var(--kw-surface);
     font-family: 'Noto Sans', sans-serif;
     overflow-x: hidden;
 }
@@ -32,65 +24,124 @@ body {
     transition: background-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
 }
 #main-nav.navbar-scrolled {
-    background: rgba(21, 21, 22, 0.92);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--kw-bg) 86%, transparent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(10px);
+}
+
+#main-nav {
+    background: color-mix(in srgb, var(--kw-bg) 86%, transparent);
     backdrop-filter: blur(10px);
 }
 
 /* --- Headers --- */
 h1, h2, h3 {
-    color: var(--color-header-large);
+    color: var(--kw-primary);
 }
 
 h4, h5, h6 {
-    color: var(--color-header-small);
+    color: var(--kw-secondary);
 }
 
 /* --- Utility Classes --- */
 /* --- Custom Utilities --- */
 .btn-main {
-    background-color: var(--color-main);
-    color: white;
+    background-color: var(--kw-primary);
+    color: #ffffff;
     transition: all 0.3s ease;
 }
 .btn-main:hover {
-    background-color: var(--color-secondary);
+    background-color: var(--kw-primary-hover);
     transform: translateY(-2px);
 }
 
+/* Nav CTA: does not reserve layout space when hidden */
+#nav-get-started {
+    position: absolute;
+    --kw-nav-cta-width: 180px;
+    right: 24px; /* matches md:pr-6 */
+    top: 50%;
+    /* Hidden: slide further up while fading so “disappear” reads clearly */
+    transform: translateY(-50%) translateY(-22px) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 280ms ease;
+    will-change: transform, opacity;
+}
+#nav-get-started.kw-nav-cta--shown {
+    transform: translateY(-50%) translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* When CTA is visible, give the links room on the right */
+#main-nav.kw-nav-cta-active #nav-links {
+    padding-right: calc(var(--kw-nav-cta-width, 180px) + 16px);
+    transition: padding-right 240ms ease;
+}
+
 .btn-main.btn-alert {
-    background-color: var(--color-text-highlight);
+    background-color: var(--kw-secondary);
 }
 .btn-main.btn-alert:hover {
-    background-color: #e24343;
+    background-color: var(--kw-secondary-hover);
 }
 
 .lottie-topper {
-    position: absolute;
-    top: 50%;
-    right: 20px;
-    width: 420px;
-    height: 420px;
-    transform: translateY(-50%);
-    z-index: 0;
     pointer-events: none;
 }
 
+/* Hero layout version: Lottie sits in a flex column */
+.lottie-topper--hero {
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
+    width: 720px;
+    height: 720px;
+    max-width: min(720px, 50vw);
+    max-height: min(720px, 50vw);
+    z-index: 0;
+    margin: 0 auto;
+}
+
+/* Three.js hero visual */
+.kw-neural-clusters {
+    position: relative;
+    width: 640px;
+    height: 640px;
+    max-width: 640px;
+    max-height: 640px;
+}
+.kw-neural-clusters canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
 .btn-outline {
-    border: 2px solid var(--color-text-main);
-    color: var(--color-text-main);
+    border: 2px solid var(--kw-surface);
+    color: var(--kw-surface);
     transition: all 0.3s ease;
 }
 .btn-outline:hover {
-    background-color: var(--color-main);
-    color: white;
-    border-color: var(--color-main);
+    background-color: var(--kw-primary);
+    color: #ffffff;
+    border-color: var(--kw-primary);
 }
 
 .card-bg {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--kw-card);
+    border: 1px solid var(--kw-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Translucent "glass" surface (tinted by kw-neutral-300) */
+.kw-glass {
+    background-color: color-mix(in srgb, var(--kw-neutral-300) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--kw-neutral-300) 88%, transparent);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* Smooth scrolling */
@@ -114,6 +165,8 @@ html {
     animation: fade-in 0.6s ease forwards;
     animation-delay: 1.4s;
 }
+
+
 @keyframes slide-down {
     from { transform: translateY(-24px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -170,7 +223,7 @@ html {
     pointer-events: auto;
 }
 .quote-mark {
-    color: var(--color-main);
+    color: var(--kw-surface);
     font-size: 1.2em;
     font-weight: 700;
     margin: 0 6px;

@@ -146,14 +146,33 @@
     fillSkeletonGrid(panels.hybrid.resultsEl);
   }
 
-  // Defaults
-  const inferredBase = `${window.location.origin}/api`;
-  const apiBaseFromQuery = new URLSearchParams(window.location.search).get('apiBase');
+  // Stage-aware defaults:
+  // - local: use the nginx reverse-proxied API when served from the web container (/api/* → api:3000/*)
+  // - demo: use a deployed API base (intended for GitHub Pages)
+  const params = new URLSearchParams(window.location.search);
+  const apiBaseFromQuery = params.get('apiBase')?.trim();
+  const stageFromQuery = params.get('stage')?.trim();
+  const inferredStage =
+    stageFromQuery ||
+    localStorage.getItem('kw_stage') ||
+    (window.location.hostname.endsWith('github.io') ? 'demo' : 'local');
+
+  const stage = inferredStage === 'demo' ? 'demo' : 'local';
+  localStorage.setItem('kw_stage', stage);
+
+  const inferredLocalBase = `${window.location.origin}/api`;
+  const configuredDemoBase =
+    (window.__KW_DEMO_API_BASE && String(window.__KW_DEMO_API_BASE).trim()) ||
+    localStorage.getItem('kw_demo_api_base') ||
+    '';
+
   if (apiBaseFromQuery) {
     apiBaseInput.value = apiBaseFromQuery;
-    localStorage.setItem('kw_api_base', apiBaseFromQuery);
+    localStorage.setItem(stage === 'demo' ? 'kw_demo_api_base' : 'kw_api_base', apiBaseFromQuery);
+  } else if (stage === 'demo') {
+    apiBaseInput.value = configuredDemoBase || '';
   } else {
-    apiBaseInput.value = localStorage.getItem('kw_api_base') || inferredBase || 'http://localhost:3000';
+    apiBaseInput.value = localStorage.getItem('kw_api_base') || inferredLocalBase || 'http://localhost:3000';
   }
   apiKeyInput.value = localStorage.getItem('kw_api_key') || '';
 

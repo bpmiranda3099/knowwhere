@@ -1,0 +1,29 @@
+###############################################################################
+# Example Terraform variables for OCI compute instance
+#
+# Copy this file to terraform.tfvars and fill in values.
+# DO NOT commit terraform.tfvars.
+###############################################################################
+
+tenancy_ocid     = "ocid1.tenancy.oc1..REPLACE_ME"
+user_ocid        = "ocid1.user.oc1..REPLACE_ME"
+fingerprint      = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+private_key_path = "/Users/YOUR_USER/.oci/oci_api_key.pem"
+region           = "ap-singapore-1"
+
+compartment_ocid = "ocid1.compartment.oc1..REPLACE_ME"
+subnet_ocid      = "ocid1.subnet.oc1..REPLACE_ME"
+
+instance_name = "knowwhere-demo"
+shape         = "VM.Standard.A1.Flex"
+ocpus         = 1
+memory_in_gbs = 6
+assign_public_ip = true
+
+ssh_authorized_keys = <<EOF
+ssh-rsa AAAA...REPLACE_ME
+EOF
+
+operating_system         = "Oracle Linux"
+operating_system_version = "9"
+

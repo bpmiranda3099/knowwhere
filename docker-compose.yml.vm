@@ -1,3 +1,6 @@
+# VM deploy (Docker Hub images). Copy beside `.env`.
+# Uses tag v1.0.2 and omits the `web` service (use GitHub Pages instead).
+
 services:
   db:
     image: ${DB_IMAGE:-pgvector/pgvector:pg16}
@@ -18,9 +21,7 @@ services:
       start_period: 20s
 
   embedding:
-    build:
-      context: .
-      dockerfile: Dockerfile.embedding
+    image: bpmiranda/knowwhere-embedding:v1.0.2
     container_name: knowwhere-embedding
     environment:
       MODEL_NAME: ${MODEL_NAME:-BAAI/bge-small-en-v1.5}
@@ -34,9 +35,7 @@ services:
       start_period: 60s
 
   reranker:
-    build:
-      context: .
-      dockerfile: Dockerfile.reranker
+    image: bpmiranda/knowwhere-reranker:v1.0.2
     container_name: knowwhere-reranker
     environment:
       MODEL_NAME: ${RERANKER_MODEL:-cross-encoder/ms-marco-MiniLM-L-4-v2}
@@ -50,31 +49,22 @@ services:
       start_period: 60s
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: bpmiranda/knowwhere-api:v1.0.2
     container_name: knowwhere-api
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Optional; if set, clients must send matching x-api-key (see docs/DEPLOYMENT.md).
       API_KEY: ${API_KEY:-}
-      # Use the DB superuser by default so local/dev stacks work without separately creating an admin role.
       DATABASE_URL: postgres://${DB_SUPERUSER:-knowwhere_superadmin}:${DB_SUPERPASS:-knowwhere_superadmin_pass}@db:5432/knowwhere
       EMBEDDING_ENDPOINT: http://embedding:8081/embed
-      # Must match the embedding container output size (schema papers.embedding is 384).
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
       RERANK_ENDPOINT: http://reranker:8082/rerank
-      # Off by default in Compose so the playground shows SQL hits; set RERANK_ABSTAIN=1 for strict relevance gating.
       RERANK_ABSTAIN: ${RERANK_ABSTAIN:-0}
-      RATE_LIMIT_MAX: 100
-      RATE_LIMIT_WINDOW: 60000
-      # When running behind ngrok / reverse proxies, trust X-Forwarded-* for client IP.
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60000}
       TRUST_PROXY: ${TRUST_PROXY:-false}
-      # Optionally restrict CORS when exposing publicly (comma-separated origins).
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       CONTACT_TO: ${CONTACT_TO:-knowwheretosearch@gmail.com}
-      # Persist topic-ingest checkpoints on the host (see ./data/ingest mount below).
       INGEST_TOPICS_STATE_FILE: /data/ingest/topics-state.json
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -92,7 +82,7 @@ services:
       reranker:
         condition: service_healthy
     volumes:
-      - ./data/ingest:/data/ingest
+      - ingest_data:/data/ingest
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
@@ -100,41 +90,7 @@ services:
       retries: 5
       start_period: 30s
 
-  migrate:
-    image: ${DB_IMAGE:-pgvector/pgvector:pg16}
-    container_name: knowwhere-migrate
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      PGPASSWORD: ${DB_SUPERPASS:-knowwhere_superadmin_pass}
-    volumes:
-      - ./db/schema.sql:/schema.sql:ro
-    # Quiet output and suppress NOTICE spam (table already exists, extension already exists, etc).
-    entrypoint:
-      [
-        "sh",
-        "-c",
-        "psql -X -q -v ON_ERROR_STOP=1 -v VERBOSITY=terse -h db -U ${DB_SUPERUSER:-knowwhere_superadmin} -d knowwhere -c \"SET client_min_messages=warning;\" -f /schema.sql || true"
-      ]
-
-  # Tip: ./web is mounted at ./web -> /usr/share/nginx/html/web — edit files and refresh;
-  # no image rebuild needed for most UI changes.
-  # Avoid `docker compose up -d --build web` for that: it often rebuilds unrelated services (slow).
-  # Rebuild nginx only: `docker compose build web && docker compose up -d web`
-  # Or: `docker build -f Dockerfile.web -t knowwhere-web:latest . && docker compose up -d web`
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    container_name: knowwhere-web
-    ports:
-      - "8080:80"
-    volumes:
-      # Live static files (ir-judge.html, etc.) without rebuilding the image.
-      - ./web:/usr/share/nginx/html/web:ro
-    depends_on:
-      - api
-
 volumes:
   db_data:
+  ingest_data:
+

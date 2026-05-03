@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Favicon is injected via components/favicon.html -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.5/pagination.css">
+  <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/style.css" media="all">
 </head>
 <body class="kw-theme-light content-page--search-empty">
@@ -42,13 +43,19 @@
   });
 </script>
 
+<script>
+  // Demo stage default API base (GitHub Pages). Set this before publishing.
+  // Example: window.__KW_DEMO_API_BASE = 'https://api.yourdomain.tld';
+  window.__KW_DEMO_API_BASE = window.__KW_DEMO_API_BASE || '';
+</script>
+
 <div class="overflow-hidden content-section" id="content-playground">
   <div class="search-empty-hero">
     <a href="/web/index.html" aria-label="KnowWhere home" title="KnowWhere">
       <img class="search-empty-hero__logo" src="images/logo.png" alt="KnowWhere">
     </a>
   </div>
-  <input id="api-base" type="hidden" value="/api">
+  <input id="api-base" type="hidden" value="">
   <input id="api-key" type="hidden" value="">
   <div class="card search-card">
     <div class="card__content">
