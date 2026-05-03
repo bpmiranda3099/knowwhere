@@ -1,5 +1,5 @@
 # VM deploy (Docker Hub images). Copy beside `.env`.
-# Uses tag v1.0.2 and omits the `web` service (use GitHub Pages instead).
+# Uses tag v1.0.3 for API and omits the `web` service (use GitHub Pages instead).
 
 services:
   db:
@@ -49,7 +49,7 @@ services:
       start_period: 60s
 
   api:
-    image: bpmiranda/knowwhere-api:v1.0.2
+    image: bpmiranda/knowwhere-api:v1.0.3
     container_name: knowwhere-api
     environment:
       NODE_ENV: production
@@ -72,6 +72,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      WEB_HEALTH_URL: ${WEB_HEALTH_URL:-https://knowwhere-team.github.io/index.html}
     # Do not publish API directly; expose via `proxy` which injects x-api-key.
     depends_on:
       db:
@@ -105,12 +106,13 @@ services:
 
   # HTTPS terminator for GitHub Pages (Mixed Content requires HTTPS).
   # Uses Let's Encrypt automatically. Set CADDY_HOSTNAME to something that resolves to this VM.
-  # Easiest: use nip.io, e.g. 140.245.125.172.nip.io
+  # Easiest: use nip.io mapping (hyphen form is reliable), e.g. 140-245-125-172.nip.io
   caddy:
     image: caddy:2
     container_name: knowwhere-caddy
     environment:
       CADDY_HOSTNAME: ${CADDY_HOSTNAME:-}
+      PROXY_ALLOWED_ORIGIN: ${PROXY_ALLOWED_ORIGIN:-}
     ports:
       - "80:80"
       - "443:443"

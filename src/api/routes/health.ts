@@ -56,8 +56,7 @@ export async function registerHealthRoutes(app: FastifyInstance): Promise<void> 
       checks.reranker = await checkHttp(`${base}/health`);
     }
     if (requested.includes('web')) {
-      // No internal web health; mark unknown
-      checks.web = 'unknown';
+      checks.web = await checkHttp(config.WEB_HEALTH_URL);
     }
 
     return { status: 'ok', services: checks };

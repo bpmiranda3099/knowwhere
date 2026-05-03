@@ -144,11 +144,19 @@
     fillSkeletonGrid(panels.hybrid.resultsEl);
   }
 
+  function normalizeHttpsNipHostname(url) {
+    if (!url) return '';
+    const m = /^https:\/\/(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.nip\.io\b/i.exec(url.trim());
+    if (!m) return url;
+    return `https://${m[1]}-${m[2]}-${m[3]}-${m[4]}.nip.io`;
+  }
+
   // Stage-aware defaults:
   // - local: use the nginx reverse-proxied API when served from the web container (/api/* → api:3000/*)
   // - demo: use a deployed API base (intended for GitHub Pages)
   const params = new URLSearchParams(window.location.search);
-  const apiBaseFromQuery = params.get('apiBase')?.trim();
+  const apiBaseFromQueryRaw = params.get('apiBase')?.trim();
+  const apiBaseFromQuery = apiBaseFromQueryRaw ? normalizeHttpsNipHostname(apiBaseFromQueryRaw) : undefined;
   const stageFromQuery = params.get('stage')?.trim();
   const inferredStage =
     stageFromQuery ||
@@ -159,7 +167,7 @@
   localStorage.setItem('kw_stage', stage);
 
   const inferredLocalBase = `${window.location.origin}/api`;
-  const configuredDemoBase = localStorage.getItem('kw_demo_api_base') || 'https://140.245.125.172.nip.io';
+  const configuredDemoBase = normalizeHttpsNipHostname(localStorage.getItem('kw_demo_api_base') || '') || 'https://140-245-125-172.nip.io';
 
   const inferredApiBase = (
     apiBaseFromQuery ||
@@ -359,10 +367,11 @@
 
   async function runSearch() {
     leaveEmptyState();
+    const demoStored = normalizeHttpsNipHostname((localStorage.getItem('kw_demo_api_base') || '').trim()) || '';
     const apiBase =
       (apiBaseFromQuery && apiBaseFromQuery.replace(/\/+$/, '')) ||
       (stage === 'demo'
-        ? ((localStorage.getItem('kw_demo_api_base') || configuredDemoBase || '').replace(/\/+$/, ''))
+        ? ((demoStored || configuredDemoBase || '').replace(/\/+$/, ''))
         : ((localStorage.getItem('kw_api_base') || inferredLocalBase || '').replace(/\/+$/, '')));
     const q = queryInput.value.trim();
     if (!q) {
@@ -391,7 +400,8 @@
     if (cached) {
       resultsLex = cached.lexical;
       resultsHybrid = cached.hybrid;
-      localStorage.setItem('kw_api_base', apiBase);
+      if (stage === 'demo') localStorage.setItem('kw_demo_api_base', apiBase);
+      else localStorage.setItem('kw_api_base', apiBase);
       renderResults();
       return;
     }
@@ -406,7 +416,8 @@
 
       resultsLex = lex;
       resultsHybrid = hybrid;
-      localStorage.setItem('kw_api_base', apiBase);
+      if (stage === 'demo') localStorage.setItem('kw_demo_api_base', apiBase);
+      else localStorage.setItem('kw_api_base', apiBase);
       writeSearchCache(apiBase, q, basePayload.limit, basePayload.level, lex, hybrid);
       renderResults();
     } catch (err) {

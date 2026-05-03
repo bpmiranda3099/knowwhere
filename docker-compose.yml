@@ -82,6 +82,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      WEB_HEALTH_URL: ${WEB_HEALTH_URL:-https://knowwhere-team.github.io/index.html}
     ports:
       - "3000:3000"
     depends_on:

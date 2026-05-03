@@ -29,7 +29,11 @@ describe('health routes (unit)', () => {
     // @ts-expect-error test override
     global.fetch = vi.fn(async () => ({ ok: true }));
     vi.doMock('../../../../src/config/env', () => ({
-      config: { EMBEDDING_ENDPOINT: 'http://embed/embed', RERANK_ENDPOINT: 'http://rerank/rerank' }
+      config: {
+        EMBEDDING_ENDPOINT: 'http://embed/embed',
+        RERANK_ENDPOINT: 'http://rerank/rerank',
+        WEB_HEALTH_URL: undefined
+      }
     }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
@@ -70,10 +74,15 @@ describe('health routes (unit)', () => {
     global.fetch = vi
       .fn()
       .mockResolvedValueOnce({ ok: false }) // embedding -> error
-      .mockRejectedValueOnce(new Error('down')); // reranker -> error
+      .mockRejectedValueOnce(new Error('down')) // reranker -> error
+      .mockResolvedValueOnce({ ok: true }); // web -> ok
 
     vi.doMock('../../../../src/config/env', () => ({
-      config: { EMBEDDING_ENDPOINT: 'http://embed/embed', RERANK_ENDPOINT: 'http://rerank/rerank' }
+      config: {
+        EMBEDDING_ENDPOINT: 'http://embed/embed',
+        RERANK_ENDPOINT: 'http://rerank/rerank',
+        WEB_HEALTH_URL: 'https://example.com'
+      }
     }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
@@ -84,7 +93,7 @@ describe('health routes (unit)', () => {
 
     expect(res.services.embedding).toBe('error');
     expect(res.services.reranker).toBe('error');
-    expect(res.services.web).toBe('unknown');
+    expect(res.services.web).toBe('ok');
   });
 
   it('ready returns ready', async () => {
@@ -109,7 +118,7 @@ describe('health routes (unit)', () => {
 
     // rerank endpoint unset so reranker stays unknown when requested via default list
     vi.doMock('../../../../src/config/env', () => ({
-      config: { EMBEDDING_ENDPOINT: 'http://embed/embed', RERANK_ENDPOINT: undefined }
+      config: { EMBEDDING_ENDPOINT: 'http://embed/embed', RERANK_ENDPOINT: undefined, WEB_HEALTH_URL: undefined }
     }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
@@ -128,7 +137,9 @@ describe('health routes (unit)', () => {
   it('embedding check is unknown when endpoint is missing', async () => {
     const app = fakeApp();
     vi.doMock('../../../../src/db/db', () => ({ query: vi.fn() }));
-    vi.doMock('../../../../src/config/env', () => ({ config: { EMBEDDING_ENDPOINT: undefined, RERANK_ENDPOINT: undefined } }));
+    vi.doMock('../../../../src/config/env', () => ({
+      config: { EMBEDDING_ENDPOINT: undefined, RERANK_ENDPOINT: undefined, WEB_HEALTH_URL: undefined }
+    }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
     await registerHealthRoutes(app);
@@ -145,7 +156,9 @@ describe('health routes (unit)', () => {
     vi.doMock('../../../../src/db/db', () => ({ query: vi.fn().mockResolvedValue({ rows: [] }) }));
     // @ts-expect-error test override
     global.fetch = vi.fn(async () => ({ ok: true }));
-    vi.doMock('../../../../src/config/env', () => ({ config: { EMBEDDING_ENDPOINT: 'http://embed/embed' } }));
+    vi.doMock('../../../../src/config/env', () => ({
+      config: { EMBEDDING_ENDPOINT: 'http://embed/embed', WEB_HEALTH_URL: undefined }
+    }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
     await registerHealthRoutes(app);
@@ -161,7 +174,9 @@ describe('health routes (unit)', () => {
     vi.doMock('../../../../src/db/db', () => ({ query: vi.fn().mockResolvedValue({ rows: [] }) }));
     // @ts-expect-error test override
     global.fetch = vi.fn(async () => ({ ok: true }));
-    vi.doMock('../../../../src/config/env', () => ({ config: { EMBEDDING_ENDPOINT: 'http://embed/embed' } }));
+    vi.doMock('../../../../src/config/env', () => ({
+      config: { EMBEDDING_ENDPOINT: 'http://embed/embed', WEB_HEALTH_URL: undefined }
+    }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
     await registerHealthRoutes(app);
@@ -177,7 +192,7 @@ describe('health routes (unit)', () => {
     // @ts-expect-error test override
     global.fetch = vi.fn(async () => ({ ok: true }));
     vi.doMock('../../../../src/config/env', () => ({
-      config: { RERANK_ENDPOINT: 'http://rerank/rerank' }
+      config: { RERANK_ENDPOINT: 'http://rerank/rerank', WEB_HEALTH_URL: undefined }
     }));
 
     const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
@@ -186,6 +201,24 @@ describe('health routes (unit)', () => {
     const healthHandler = app.get.mock.calls.find((c: any[]) => c[0] === '/health')?.[1];
     const res = await healthHandler({ query: { services: 'reranker' } });
     expect(res.services.reranker).toBe('ok');
+  });
+
+  it('health marks web unknown when WEB_HEALTH_URL is unset', async () => {
+    const app = fakeApp();
+
+    vi.doMock('../../../../src/db/db', () => ({ query: vi.fn().mockResolvedValue({ rows: [] }) }));
+    // @ts-expect-error test override
+    global.fetch = vi.fn(async () => ({ ok: true }));
+    vi.doMock('../../../../src/config/env', () => ({
+      config: { WEB_HEALTH_URL: undefined }
+    }));
+
+    const { registerHealthRoutes } = await import('../../../../src/api/routes/health');
+    await registerHealthRoutes(app);
+
+    const healthHandler = app.get.mock.calls.find((c: any[]) => c[0] === '/health')?.[1];
+    const res = await healthHandler({ query: { services: 'web' } });
+    expect(res.services.web).toBe('unknown');
   });
 });
 

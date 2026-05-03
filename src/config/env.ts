@@ -31,7 +31,10 @@ const envSchema = z
       .pipe(z.boolean().default(false)),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
-    SMTP_FROM: z.string().optional()
+    SMTP_FROM: z.string().optional(),
+
+    // Optional: URL GET-check for `/health?s=...&web` (GitHub Pages, etc.).
+    WEB_HEALTH_URL: z.string().url().optional()
   })
   .superRefine((val, ctx) => {
     if (val.NODE_ENV !== 'test' && !val.RERANK_ENDPOINT) {

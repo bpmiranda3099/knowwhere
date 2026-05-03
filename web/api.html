@@ -325,6 +325,7 @@ print(response.json())</code></pre>
     <div class="overflow-hidden content-section" id="content-health">
       <h2>GET /health</h2>
       <p>Lightweight readiness probe used by Docker health checks. No authentication required. You can optionally request specific services via <code>?services=db,embedding,reranker,web</code>.</p>
+      <p>For <code>web</code>, the API performs a simple GET to <code>WEB_HEALTH_URL</code> (typically your GitHub Pages site), and reports <code>ok</code> on HTTP 2xx. If <code>WEB_HEALTH_URL</code> is unset, <code>web</code> is <code>unknown</code>.</p>
       <div class="code-tabs" data-tabs="health-request">
         <div class="tab-buttons">
           <button class="tab-button active" data-tab="curl">cURL</button>
@@ -352,7 +353,7 @@ print(response.json())</code></pre>
     "db": "ok",
     "embedding": "ok",
     "reranker": "ok",
-    "web": "unknown"
+    "web": "ok"
   }
 }</code></pre>
       <p>A <code>/ready</code> endpoint is also available for readiness checks (API-only).</p>
