@@ -151,12 +151,36 @@
     return `https://${m[1]}-${m[2]}-${m[3]}-${m[4]}.nip.io`;
   }
 
+  const HTTPS_PAGES = window.location.protocol === 'https:';
+  /** GitHub Pages (HTTPS) cannot call http:// APIs (mixed content). */
+  function normalizeDemoApiBaseUrl(url) {
+    if (!url) return '';
+    let u = normalizeHttpsNipHostname(url.trim()).replace(/\/+$/, '');
+    if (!HTTPS_PAGES) return u;
+    try {
+      const parsed = new URL(u);
+      if (parsed.hostname === '140.245.125.172' || parsed.hostname === '140-245-125-172.nip.io') {
+        parsed.protocol = 'https:';
+        if (parsed.port === '3000') parsed.port = '';
+        else if (!parsed.hostname.includes('nip.io')) parsed.port = '';
+        return normalizeHttpsNipHostname(parsed.href.replace(/\/+$/, ''));
+      }
+      if (parsed.protocol === 'http:' && /\.nip\.io$/i.test(parsed.hostname)) {
+        parsed.protocol = 'https:';
+        return normalizeHttpsNipHostname(parsed.href.replace(/\/+$/, ''));
+      }
+      return normalizeHttpsNipHostname(u);
+    } catch {
+      return normalizeHttpsNipHostname(u);
+    }
+  }
+
   // Stage-aware defaults:
   // - local: use the nginx reverse-proxied API when served from the web container (/api/* → api:3000/*)
   // - demo: use a deployed API base (intended for GitHub Pages)
   const params = new URLSearchParams(window.location.search);
   const apiBaseFromQueryRaw = params.get('apiBase')?.trim();
-  const apiBaseFromQuery = apiBaseFromQueryRaw ? normalizeHttpsNipHostname(apiBaseFromQueryRaw) : undefined;
+  const apiBaseFromQuery = apiBaseFromQueryRaw ? normalizeDemoApiBaseUrl(apiBaseFromQueryRaw) : undefined;
   const stageFromQuery = params.get('stage')?.trim();
   const inferredStage =
     stageFromQuery ||
@@ -167,13 +191,16 @@
   localStorage.setItem('kw_stage', stage);
 
   const inferredLocalBase = `${window.location.origin}/api`;
-  const configuredDemoBase = normalizeHttpsNipHostname(localStorage.getItem('kw_demo_api_base') || '') || 'https://140-245-125-172.nip.io';
+  const configuredDemoBase =
+    normalizeDemoApiBaseUrl(localStorage.getItem('kw_demo_api_base') || '') ||
+    'https://140-245-125-172.nip.io';
 
-  const inferredApiBase = (
+  const inferredApiBaseRaw =
     apiBaseFromQuery ||
     (stage === 'demo' ? configuredDemoBase : (localStorage.getItem('kw_api_base') || inferredLocalBase)) ||
-    ''
-  ).replace(/\/+$/, '');
+    '';
+  const inferredApiBase =
+    stage === 'demo' ? normalizeDemoApiBaseUrl(inferredApiBaseRaw) : inferredApiBaseRaw.replace(/\/+$/, '');
   if (inferredApiBase) {
     localStorage.setItem(stage === 'demo' ? 'kw_demo_api_base' : 'kw_api_base', inferredApiBase);
   }
@@ -367,12 +394,16 @@
 
   async function runSearch() {
     leaveEmptyState();
-    const demoStored = normalizeHttpsNipHostname((localStorage.getItem('kw_demo_api_base') || '').trim()) || '';
-    const apiBase =
+    const demoStored =
+      normalizeDemoApiBaseUrl((localStorage.getItem('kw_demo_api_base') || '').trim()) || '';
+    const apiBaseRaw =
       (apiBaseFromQuery && apiBaseFromQuery.replace(/\/+$/, '')) ||
       (stage === 'demo'
-        ? ((demoStored || configuredDemoBase || '').replace(/\/+$/, ''))
+        ? demoStored ||
+          normalizeDemoApiBaseUrl(configuredDemoBase) ||
+          normalizeDemoApiBaseUrl('https://140-245-125-172.nip.io')
         : ((localStorage.getItem('kw_api_base') || inferredLocalBase || '').replace(/\/+$/, '')));
+    const apiBase = stage === 'demo' ? normalizeDemoApiBaseUrl(apiBaseRaw) : apiBaseRaw;
     const q = queryInput.value.trim();
     if (!q) {
       showToast('Enter a few words in the search box, then try again.', 'info');
