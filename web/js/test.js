@@ -151,22 +151,20 @@
     return `https://${m[1]}-${m[2]}-${m[3]}-${m[4]}.nip.io`;
   }
 
-  const HTTPS_PAGES = window.location.protocol === 'https:';
-  /** GitHub Pages (HTTPS) cannot call http:// APIs (mixed content). */
+  const VM_API_HOST = '140.245.125.172';
+  /** Demo / GitHub Pages: use TLS hostname with a real cert (nip.io), never raw public IP:443. */
   function normalizeDemoApiBaseUrl(url) {
     if (!url) return '';
     let u = normalizeHttpsNipHostname(url.trim()).replace(/\/+$/, '');
-    if (!HTTPS_PAGES) return u;
     try {
       const parsed = new URL(u);
-      if (parsed.hostname === '140.245.125.172' || parsed.hostname === '140-245-125-172.nip.io') {
-        parsed.protocol = 'https:';
-        if (parsed.port === '3000') parsed.port = '';
-        else if (!parsed.hostname.includes('nip.io')) parsed.port = '';
-        return normalizeHttpsNipHostname(parsed.href.replace(/\/+$/, ''));
+      const isIpV4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(parsed.hostname);
+      if (isIpV4 && parsed.hostname === VM_API_HOST) {
+        return 'https://140-245-125-172.nip.io';
       }
-      if (parsed.protocol === 'http:' && /\.nip\.io$/i.test(parsed.hostname)) {
+      if (parsed.hostname === '140-245-125-172.nip.io' || parsed.hostname.endsWith('.nip.io')) {
         parsed.protocol = 'https:';
+        if (parsed.port === '3000' || parsed.port === '80') parsed.port = '';
         return normalizeHttpsNipHostname(parsed.href.replace(/\/+$/, ''));
       }
       return normalizeHttpsNipHostname(u);
