@@ -159,10 +159,7 @@
   localStorage.setItem('kw_stage', stage);
 
   const inferredLocalBase = `${window.location.origin}/api`;
-  const configuredDemoBase =
-    (window.__KW_DEMO_API_BASE && String(window.__KW_DEMO_API_BASE).trim()) ||
-    localStorage.getItem('kw_demo_api_base') ||
-    '';
+  const configuredDemoBase = localStorage.getItem('kw_demo_api_base') || 'https://140.245.125.172.nip.io';
 
   const inferredApiBase = (
     apiBaseFromQuery ||
