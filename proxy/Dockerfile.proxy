@@ -1,0 +1,10 @@
+FROM nginx:1.27-alpine
+
+RUN apk add --no-cache gettext
+
+COPY proxy/default.conf.template /etc/nginx/templates/default.conf.template
+COPY proxy/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+

@@ -1,7 +1,6 @@
 // Minimal search UI with pagination for /search (hybrid + paper only)
 (function () {
   const apiBaseInput = document.getElementById('api-base');
-  const apiKeyInput = document.getElementById('api-key');
   const queryInput = document.getElementById('query');
   const searchBtn = document.getElementById('search-btn');
   const TOAST_AUTO_MS = 8000;
@@ -31,8 +30,8 @@
   const SEARCH_CACHE_PREFIX = 'kw_search_pair:v1:';
   const SEARCH_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
-  function searchCacheKey(apiBase, apiKey, q, limit, level) {
-    const bundle = `${apiBase}\n${apiKey}\n${level}\n${String(limit)}\n${q}`;
+  function searchCacheKey(apiBase, q, limit, level) {
+    const bundle = `${apiBase}\n${level}\n${String(limit)}\n${q}`;
     let h = 5381;
     for (let i = 0; i < bundle.length; i += 1) {
       h = Math.imul(h, 33) ^ bundle.charCodeAt(i);
@@ -40,9 +39,9 @@
     return SEARCH_CACHE_PREFIX + (h >>> 0).toString(16);
   }
 
-  function readSearchCache(apiBase, apiKey, q, limit, level) {
+  function readSearchCache(apiBase, q, limit, level) {
     try {
-      const key = searchCacheKey(apiBase, apiKey, q, limit, level);
+      const key = searchCacheKey(apiBase, q, limit, level);
       const raw = localStorage.getItem(key);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
@@ -72,8 +71,8 @@
     }
   }
 
-  function writeSearchCache(apiBase, apiKey, q, limit, level, lexical, hybrid) {
-    const key = searchCacheKey(apiBase, apiKey, q, limit, level);
+  function writeSearchCache(apiBase, q, limit, level, lexical, hybrid) {
+    const key = searchCacheKey(apiBase, q, limit, level);
     const payload = JSON.stringify({ t: Date.now(), lexical, hybrid });
     try {
       localStorage.setItem(key, payload);
@@ -174,7 +173,6 @@
   } else {
     apiBaseInput.value = localStorage.getItem('kw_api_base') || inferredLocalBase || 'http://localhost:3000';
   }
-  apiKeyInput.value = localStorage.getItem('kw_api_key') || '';
 
   function showToast(message, variant = 'error') {
     const host = document.getElementById('kw-toast-host');
@@ -347,12 +345,11 @@
     renderPanel(panels.hybrid, resultsHybrid);
   }
 
-  async function fetchSearch(apiBase, apiKey, payload) {
+  async function fetchSearch(apiBase, payload) {
     const res = await fetch(`${apiBase}/search`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        ...(apiKey ? { 'x-api-key': apiKey } : {})
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
@@ -367,7 +364,6 @@
   async function runSearch() {
     leaveEmptyState();
     const apiBase = apiBaseInput.value.trim() || 'http://localhost:3000';
-    const apiKey = apiKeyInput.value.trim();
     const q = queryInput.value.trim();
     if (!q) {
       showToast('Enter a few words in the search box, then try again.', 'info');
@@ -380,11 +376,10 @@
       limit: 50
     };
 
-    const cached = readSearchCache(apiBase, apiKey, q, basePayload.limit, basePayload.level);
+    const cached = readSearchCache(apiBase, q, basePayload.limit, basePayload.level);
     if (cached) {
       resultsLex = cached.lexical;
       resultsHybrid = cached.hybrid;
-      localStorage.setItem('kw_api_key', apiKey);
       localStorage.setItem('kw_api_base', apiBase);
       renderResults();
       return;
@@ -394,15 +389,14 @@
     showResultsSkeleton();
     try {
       const [lex, hybrid] = await Promise.all([
-        fetchSearch(apiBase, apiKey, { ...basePayload, mode: 'lexical' }),
-        fetchSearch(apiBase, apiKey, { ...basePayload, mode: 'hybrid' })
+        fetchSearch(apiBase, { ...basePayload, mode: 'lexical' }),
+        fetchSearch(apiBase, { ...basePayload, mode: 'hybrid' })
       ]);
 
       resultsLex = lex;
       resultsHybrid = hybrid;
-      localStorage.setItem('kw_api_key', apiKey);
       localStorage.setItem('kw_api_base', apiBase);
-      writeSearchCache(apiBase, apiKey, q, basePayload.limit, basePayload.level, lex, hybrid);
+      writeSearchCache(apiBase, q, basePayload.limit, basePayload.level, lex, hybrid);
       renderResults();
     } catch (err) {
       console.error(err);

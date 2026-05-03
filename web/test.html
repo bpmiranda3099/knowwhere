@@ -55,8 +55,19 @@
       <img class="search-empty-hero__logo" src="images/logo.png" alt="KnowWhere">
     </a>
   </div>
-  <input id="api-base" type="hidden" value="">
-  <input id="api-key" type="hidden" value="">
+  <div class="card search-card" style="margin-bottom: 14px;">
+    <div class="card__content">
+      <div class="search-row" style="gap: 10px; flex-wrap: wrap;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width: 280px; flex: 1;">
+          <label for="api-base" class="text-muted small" style="margin:0;">API base</label>
+          <input id="api-base" type="text" class="search-input" placeholder="https://your-api-host (demo) or /api (local)" value="">
+        </div>
+      </div>
+      <div class="text-muted small" style="margin-top: 10px;">
+        Tip: append <code>?stage=demo&amp;apiBase=https://&lt;host&gt;</code> to point the UI at your deployed proxy.
+      </div>
+    </div>
+  </div>
   <div class="card search-card">
     <div class="card__content">
       <div class="search-row">

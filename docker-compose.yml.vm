@@ -72,8 +72,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
-    ports:
-      - "3000:3000"
+    # Do not publish API directly; expose via `proxy` which injects x-api-key.
     depends_on:
       db:
         condition: service_healthy
@@ -89,6 +88,22 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  proxy:
+    build:
+      context: .
+      dockerfile: proxy/Dockerfile.proxy
+    container_name: knowwhere-proxy
+    environment:
+      PROXY_UPSTREAM: http://api:3000
+      # Server-side secret; never put this in GitHub Pages.
+      PROXY_API_KEY: ${API_KEY:-}
+      # Allow your Pages origin here (exactly), e.g. https://knowWHERE-team.github.io
+      PROXY_ALLOWED_ORIGIN: ${PROXY_ALLOWED_ORIGIN:-}
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
 
 volumes:
   db_data:
